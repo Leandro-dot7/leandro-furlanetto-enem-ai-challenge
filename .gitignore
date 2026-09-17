@@ -1,0 +1,30 @@
+# Dependências
+node_modules/
+*/node_modules/
+
+# Variáveis de ambiente sensíveis
+.env
+.env.*
+!.env.example
+*.env
+*.local
+
+# Builds e outputs
+dist/
+dist-ssr/
+build/
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# IDEs e OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
