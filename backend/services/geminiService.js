@@ -1,8 +1,20 @@
 import { GoogleGenAI } from '@google/genai';
 
 // ─── Inicialização do cliente Gemini ─────────────────────────────────────────
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-const MODEL = 'gemini-2.0-flash';
+function getAi() {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey === 'sua_chave_aqui') {
+    throw new Error('Chave da API do Gemini (GEMINI_API_KEY) não configurada no backend/.env');
+  }
+  return new GoogleGenAI({ apiKey });
+}
+
+// Lista de modelos ordenados por prioridade com fallback automático em caso de 503 / indisponibilidade
+const CANDIDATE_MODELS = [
+  'gemini-2.5-flash',
+  'gemini-3.6-flash',
+  'gemini-2.5-flash-lite',
+];
 
 // ─── System Prompt do Tutor ENEM ─────────────────────────────────────────────
 const TUTOR_SYSTEM_PROMPT = `<PERSONA E PAPEL>
@@ -20,40 +32,44 @@ Você é o "Tutor ENEM", um assistente virtual e tutor pedagógico altamente esp
 </FORMATO DAS RESPOSTAS>`;
 
 /**
- * Envia mensagens ao tutor ENEM e retorna a resposta textual.
- *
- * @param {Array<{role: 'user'|'model', parts: [{text: string}]}>} messages
- *   Histórico completo da conversa, incluindo a mensagem atual do usuário.
- * @returns {Promise<string>} Texto de resposta gerado pelo modelo.
+ * Envia mensagens ao tutor ENEM e retorna a resposta textual com fallback de modelo.
  */
 export async function chatWithTutor(messages) {
-  // Separa o histórico anterior da mensagem atual (última da lista)
+  const ai = getAi();
   const history = messages.slice(0, -1);
   const lastMessage = messages[messages.length - 1];
 
-  const chat = ai.chats.create({
-    model: MODEL,
-    config: {
-      systemInstruction: TUTOR_SYSTEM_PROMPT,
-    },
-    history,
-  });
+  let lastError = null;
 
-  const response = await chat.sendMessage({
-    message: lastMessage.parts,
-  });
+  for (const model of CANDIDATE_MODELS) {
+    try {
+      const chat = ai.chats.create({
+        model,
+        config: {
+          systemInstruction: TUTOR_SYSTEM_PROMPT,
+        },
+        history,
+      });
 
-  return response.text;
+      const response = await chat.sendMessage({
+        message: lastMessage.parts,
+      });
+
+      return response.text;
+    } catch (err) {
+      console.warn(`[chatWithTutor] Falha com modelo ${model}:`, err.message);
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error('Nenhum modelo disponível no momento.');
 }
 
 /**
- * Gera questões de simulado ENEM em formato JSON estruturado.
- *
- * @param {string} materia  — Área/matéria (ex: "Matemática", "História")
- * @param {number} numQuestoes — Número de questões a gerar (1–20)
- * @returns {Promise<Object>} Objeto com { materia, questoes: [...] }
+ * Gera questões de simulado ENEM em formato JSON estruturado com fallback de modelo.
  */
 export async function gerarSimulado(materia, numQuestoes) {
+  const ai = getAi();
   const prompt = `Você é um especialista em criação de questões para o ENEM.
 Gere exatamente ${numQuestoes} questão(ões) de "${materia}" no estilo ENEM.
 
@@ -84,34 +100,34 @@ Retorne APENAS o JSON válido, sem markdown, sem texto extra, seguindo EXATAMENT
   ]
 }`;
 
-  const response = await ai.models.generateContent({
-    model: MODEL,
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    config: {
-      responseMimeType: 'application/json',
-    },
-  });
+  let lastError = null;
 
-  const rawText = response.text;
+  for (const model of CANDIDATE_MODELS) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        config: {
+          responseMimeType: 'application/json',
+        },
+      });
 
-  // Tenta fazer parse do JSON retornado pela IA
-  try {
-    return JSON.parse(rawText);
-  } catch {
-    throw new Error(
-      `A IA retornou um JSON inválido. Tente novamente. Resposta bruta: ${rawText.slice(0, 200)}`
-    );
+      const rawText = response.text;
+      return JSON.parse(rawText);
+    } catch (err) {
+      console.warn(`[gerarSimulado] Falha com modelo ${model}:`, err.message);
+      lastError = err;
+    }
   }
+
+  throw lastError || new Error('Erro ao gerar simulado com os modelos disponíveis.');
 }
 
 /**
- * Corrige uma redação ENEM e retorna avaliação por competência em JSON.
- *
- * @param {string} tema   — Tema da redação
- * @param {string} texto  — Texto completo da redação do aluno
- * @returns {Promise<Object>} Objeto com { notaTotal, competencias, comentarioGeral }
+ * Corrige uma redação ENEM e retorna avaliação por competência em JSON com fallback de modelo.
  */
 export async function corrigirRedacao(tema, texto) {
+  const ai = getAi();
   const prompt = `Você é um corretor especialista em redações do ENEM. Corrija a redação abaixo seguindo rigorosamente as 5 competências da grade de correção do ENEM.
 
 TEMA: ${tema}
@@ -138,22 +154,25 @@ Retorne APENAS o JSON válido, sem markdown, sem texto extra, seguindo EXATAMENT
   "comentarioGeral": "..."
 }`;
 
-  const response = await ai.models.generateContent({
-    model: MODEL,
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    config: {
-      responseMimeType: 'application/json',
-    },
-  });
+  let lastError = null;
 
-  const rawText = response.text;
+  for (const model of CANDIDATE_MODELS) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        config: {
+          responseMimeType: 'application/json',
+        },
+      });
 
-  // Tenta fazer parse do JSON retornado pela IA
-  try {
-    return JSON.parse(rawText);
-  } catch {
-    throw new Error(
-      `A IA retornou um JSON inválido. Tente novamente. Resposta bruta: ${rawText.slice(0, 200)}`
-    );
+      const rawText = response.text;
+      return JSON.parse(rawText);
+    } catch (err) {
+      console.warn(`[corrigirRedacao] Falha com modelo ${model}:`, err.message);
+      lastError = err;
+    }
   }
+
+  throw lastError || new Error('Erro ao corrigir redação com os modelos disponíveis.');
 }

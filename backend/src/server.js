@@ -1,12 +1,9 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 
 import aiRoutes from '../routes/ai.routes.js';
-
-// Carrega variáveis de ambiente
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
