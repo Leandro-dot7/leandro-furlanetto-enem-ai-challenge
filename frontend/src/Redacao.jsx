@@ -1,16 +1,16 @@
 /**
  * Redacao.jsx — Correção de redação por IA
  * Fluxo:
- *   1. Usuário escolhe tema ou usa o tema da semana
+ *   1. Usuário escolhe tema, gera um com IA ou usa o tema da semana
  *   2. Digita/cola a redação
- *   3. IA retorna avaliação por cada uma das 5 competências do ENEM
- *   4. Resultado salvo no Supabase
+ *   3. IA retorna avaliação rigorosa pelas 5 competências do ENEM
+ *   4. Resultado salvo no Supabase com atualização imediata
  */
 import React, { useState } from 'react';
 import { useAuth } from './context/AuthContext';
 import { supabase } from './lib/supabase';
 import api from './lib/api';
-import { FileText, Loader2, Send, RotateCcw, AlertCircle } from 'lucide-react';
+import { FileText, Loader2, Send, RotateCcw, AlertCircle, Sparkles, RefreshCw } from 'lucide-react';
 
 const TEMA_SEMANA = 'Desafios para a preservação do patrimônio histórico no Brasil';
 
@@ -92,7 +92,7 @@ function ResultadoCorrecao({ resultado, onNova }) {
       {/* Competências */}
       <div>
         <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
-          Avaliação por competência
+          Avaliação por competência (Grade INEP)
         </h3>
         <div className="space-y-3">
           {Object.entries(COMPETENCIAS_INFO).map(([key, info]) => {
@@ -132,7 +132,10 @@ function ResultadoCorrecao({ resultado, onNova }) {
 export default function Redacao() {
   const { user } = useAuth();
   const [tema, setTema] = useState(TEMA_SEMANA);
+  const [eixoTematico, setEixoTematico] = useState('');
+  const [contexto, setContexto] = useState('');
   const [temaCustom, setTemaCustom] = useState(false);
+  const [gerandoTema, setGerandoTema] = useState(false);
   const [texto, setTexto] = useState('');
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState(null);
@@ -140,6 +143,22 @@ export default function Redacao() {
 
   const charCount = texto.trim().length;
   const palavras = texto.trim() ? texto.trim().split(/\s+/).length : 0;
+
+  async function handleGerarTema() {
+    setGerandoTema(true);
+    setErro('');
+    try {
+      const { data } = await api.post('/ai/redacao/gerar-tema');
+      setTema(data.tema);
+      setEixoTematico(data.eixo || '');
+      setContexto(data.contexto || '');
+      setTemaCustom(false);
+    } catch (err) {
+      setErro(err.message || 'Erro ao gerar tema com IA. Tente novamente.');
+    } finally {
+      setGerandoTema(false);
+    }
+  }
 
   async function handleEnviar(e) {
     e.preventDefault();
@@ -154,14 +173,17 @@ export default function Redacao() {
 
       // Salvar no Supabase
       if (user) {
-        await supabase.from('redacoes').insert({
+        const { error: insertError } = await supabase.from('redacoes').insert({
           user_id: user.id,
           tema,
           texto,
           nota_total: data.notaTotal,
           competencias: data.competencias,
           criado_em: new Date().toISOString(),
-        }).then(() => {}).catch(() => {});
+        });
+        if (insertError) {
+          console.warn('[Supabase redacoes insert warning]:', insertError.message);
+        }
       }
     } catch (err) {
       setErro(err.message || 'Erro ao enviar redação. Tente novamente.');
@@ -186,23 +208,44 @@ export default function Redacao() {
           Correção de Redação
         </h1>
         <p className="text-sm text-slate-500 mt-1">
-          Escreva sua redação e receba avaliação pelas 5 competências do ENEM
+          Escreva sua redação e receba avaliação pelas 5 competências oficiais do ENEM
         </p>
       </div>
 
       <form onSubmit={handleEnviar} className="space-y-4">
         {/* Tema */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
-          <div className="flex items-center justify-between mb-3">
-            <label className="text-sm font-semibold text-slate-700">Tema</label>
-            <button
-              type="button"
-              onClick={() => setTemaCustom(!temaCustom)}
-              className="text-xs text-indigo-600 hover:text-indigo-700 font-medium focus:outline-none focus:underline"
-            >
-              {temaCustom ? 'Usar tema da semana' : 'Usar outro tema'}
-            </button>
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <label className="text-sm font-semibold text-slate-700">Proposta Temática</label>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleGerarTema}
+                disabled={gerandoTema}
+                className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 font-medium px-3 py-1.5 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              >
+                {gerandoTema ? (
+                  <>
+                    <RefreshCw size={12} className="animate-spin" />
+                    Gerando tema...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={12} />
+                    Sugerir tema com IA
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTemaCustom(!temaCustom)}
+                className="text-xs text-slate-500 hover:text-slate-700 font-medium focus:outline-none focus:underline"
+              >
+                {temaCustom ? 'Usar tema gerado' : 'Digitar outro tema'}
+              </button>
+            </div>
           </div>
+
           {temaCustom ? (
             <input
               type="text"
@@ -212,9 +255,18 @@ export default function Redacao() {
               className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all"
             />
           ) : (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-              <p className="text-sm font-medium text-amber-800">📌 Tema da semana</p>
-              <p className="text-sm text-amber-700 mt-0.5">{TEMA_SEMANA}</p>
+            <div className="bg-amber-50/80 border border-amber-200 rounded-xl px-4 py-3.5 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-amber-800 uppercase tracking-wider">
+                  📌 {eixoTematico ? `Eixo: ${eixoTematico}` : 'Tema de Redação'}
+                </p>
+              </div>
+              <p className="text-sm font-bold text-slate-900 leading-snug">{tema}</p>
+              {contexto && (
+                <p className="text-xs text-slate-600 leading-relaxed pt-1 border-t border-amber-200/60 mt-1">
+                  <strong>💡 Contexto motivador:</strong> {contexto}
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -234,7 +286,7 @@ export default function Redacao() {
             rows={16}
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
-            placeholder="Cole ou digite sua redação aqui. Mínimo: 50 caracteres para avaliação..."
+            placeholder="Cole ou digite sua redação aqui. Divida em introdução, desenvolvimento e conclusão (mínimo de 50 caracteres)..."
             className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 leading-relaxed placeholder-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all resize-none"
           />
           {charCount > 0 && charCount < 50 && (
@@ -260,7 +312,7 @@ export default function Redacao() {
           {loading ? (
             <>
               <Loader2 size={16} className="animate-spin" />
-              <span>Analisando redação...</span>
+              <span>Avaliando com grade oficial do ENEM...</span>
             </>
           ) : (
             <>

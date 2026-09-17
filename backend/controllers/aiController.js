@@ -77,6 +77,20 @@ export async function gerarSimulado(req, res) {
   }
 }
 
+// ─── POST /api/ai/redacao/gerar-tema ─────────────────────────────────────────
+/**
+ * Handler de geração de tema dinâmico para redação ENEM.
+ */
+export async function gerarTemaRedacao(req, res) {
+  try {
+    const temaData = await gemini.gerarTemaRedacao();
+    return res.status(200).json(temaData);
+  } catch (err) {
+    console.error('[gerarTemaRedacao] Erro:', err.message);
+    return res.status(500).json({ error: 'Erro ao gerar tema de redação. Tente novamente.' });
+  }
+}
+
 // ─── POST /api/ai/redacao/corrigir ───────────────────────────────────────────
 /**
  * Handler de correção de redação ENEM.

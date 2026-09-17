@@ -123,34 +123,111 @@ Retorne APENAS o JSON válido, sem markdown, sem texto extra, seguindo EXATAMENT
 }
 
 /**
- * Corrige uma redação ENEM e retorna avaliação por competência em JSON com fallback de modelo.
+ * Gera uma proposta de tema inédita para redação estilo ENEM com contexto motivador.
+ */
+export async function gerarTemaRedacao() {
+  const ai = getAi();
+  const prompt = `Você é um elaborador de propostas de redação para o ENEM.
+Crie uma proposta de tema inédita e relevante para o cenário brasileiro atual, seguindo a estrutura padrão do INEP/ENEM.
+
+Eixos temáticos possíveis: Social, Cultural, Científico/Tecnológico, Ambiental ou Educacional.
+
+Retorne APENAS o JSON no seguinte schema:
+{
+  "tema": "Título do tema no padrão ENEM (ex: 'Caminhos para combater a evasão escolar no Brasil contemporâneo')",
+  "eixo": "Eixo Temático (ex: 'Educação e Sociedade')",
+  "contexto": "Breve resumo do problema e contextualização para inspirar os argumentos do aluno (2 a 3 frases)."
+}`;
+
+  let lastError = null;
+
+  for (const model of CANDIDATE_MODELS) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        config: {
+          responseMimeType: 'application/json',
+        },
+      });
+
+      const rawText = response.text;
+      return JSON.parse(rawText);
+    } catch (err) {
+      console.warn(`[gerarTemaRedacao] Falha com modelo ${model}:`, err.message);
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error('Erro ao gerar tema de redação.');
+}
+
+/**
+ * Corrige uma redação ENEM com rigor e calibração estrita da grade oficial do INEP.
  */
 export async function corrigirRedacao(tema, texto) {
   const ai = getAi();
-  const prompt = `Você é um corretor especialista em redações do ENEM. Corrija a redação abaixo seguindo rigorosamente as 5 competências da grade de correção do ENEM.
+  const prompt = `Você é um avaliador oficial extremamente rigoroso de redações do ENEM (INEP).
+Sua missão é avaliar a redação do aluno de forma JUSTA, TÉCNICA e RÍGIDA, sem benevolência artificial.
+Notas permitidas por competência: APENAS múltiplos de 40 (0, 40, 80, 120, 160, 200).
 
-TEMA: ${tema}
+TEMA: "${tema}"
 
-REDAÇÃO:
+TEXTO DO ESTUDANTE:
+"""
 ${texto}
+"""
 
-INSTRUÇÕES DE CORREÇÃO:
-- Cada competência vale de 0 a 200 pontos (em intervalos de 40: 0, 40, 80, 120, 160, 200).
-- A nota total é a soma das 5 competências (máximo 1000 pontos).
-- Forneça feedback específico, construtivo e detalhado para cada competência, apontando pontos positivos e o que pode melhorar.
-- O comentário geral deve ser encorajador e trazer as principais orientações para evolução.
+DIRETRIZES DE PONTUAÇÃO RÍGIDAS (GRADE INEP):
 
-Retorne APENAS o JSON válido, sem markdown, sem texto extra, seguindo EXATAMENTE este schema:
+1. COMPETÊNCIA 1 (Domínio da norma culta):
+   - 200 pts: No máximo 1 desvio gramatical leve e 1 falha de concordância/regência.
+   - 160 pts: Poucos desvios gramaticais (2 a 3).
+   - 120 pts: Desvios regulares de pontuação, acentuação, concordância ou ortografia (4 a 6).
+   - 80 pts: Muitos desvios gramaticais recorrentes.
+   - 40 pts: Domínio precário da norma culta.
+   - 0 pts: Desconhecimento total da língua portuguesa escrita.
+
+2. COMPETÊNCIA 2 (Compreensão do tema e tipo textual dissertativo-argumentativo):
+   - ATENÇÃO: Se o texto for escrito em apenas 1 ou 2 parágrafos, a nota MÁXIMA é 80 pts.
+   - Se não apresentar repertório sociocultural legitimado e produtivo (filósofos, dados, história, leis), a nota MÁXIMA é 120 pts.
+   - Se tangenciar o tema: nota máxima 40 pts. Se fugir do tema: nota 0.
+
+3. COMPETÊNCIA 3 (Seleção, relação e organização de argumentos):
+   - Se apenas lista problemas sem explicar causas e consequências (projeto de texto falho): nota máxima 80 a 120 pts.
+   - 200 pts: Argumentação consistente, autoral e com projeto de texto estratégico evidente.
+
+4. COMPETÊNCIA 4 (Mecanismos linguísticos e coesão):
+   - ATENÇÃO: Se não há conectivos interparágrafos (início dos parágrafos de desenvolvimento e conclusão), nota MÁXIMA 80 a 120 pts.
+   - 200 pts: Repertório diversificado de conectivos inter e intraparágrafos sem repetições viciosas.
+
+5. COMPETÊNCIA 5 (Proposta de Intervenção):
+   - Conte obrigatoriamente a presença dos 5 ELEMENTOS:
+     1. Agente (quem?)
+     2. Ação (o quê?)
+     3. Modo/Meio (como?)
+     4. Efeito/Finalidade (para quê?)
+     5. Detalhamento (explicação extra de um dos itens acima)
+   - 200 pts: Todos os 5 elementos válidos e articulados.
+   - 160 pts: Contém 4 elementos.
+   - 120 pts: Contém 3 elementos.
+   - 80 pts: Contém 2 elementos.
+   - 40 pts: Contém 1 elemento ou proposta vaga.
+   - 0 pts: Sem proposta ou desrespeito aos direitos humanos.
+
+IMPORTANTE: Se o texto tiver menos de 15 linhas ou for excessivamente curto, seja severo na avaliação proporcional.
+
+Retorne APENAS um JSON válido no seguinte formato:
 {
-  "notaTotal": 820,
+  "notaTotal": 640,
   "competencias": {
-    "C1": { "nota": 160, "titulo": "Domínio da norma culta", "feedback": "..." },
-    "C2": { "nota": 180, "titulo": "Compreensão e proposta temática", "feedback": "..." },
-    "C3": { "nota": 160, "titulo": "Seleção de argumentos", "feedback": "..." },
-    "C4": { "nota": 160, "titulo": "Mecanismos linguísticos", "feedback": "..." },
-    "C5": { "nota": 160, "titulo": "Proposta de intervenção", "feedback": "..." }
+    "C1": { "nota": 120, "titulo": "Domínio da norma culta", "feedback": "Análise clara dos erros com exemplos do texto." },
+    "C2": { "nota": 80, "titulo": "Compreensão e proposta temática", "feedback": "Análise sobre estrutura de parágrafos e repertório." },
+    "C3": { "nota": 120, "titulo": "Seleção de argumentos", "feedback": "Análise sobre a profundidade argumentativa." },
+    "C4": { "nota": 120, "titulo": "Mecanismos linguísticos", "feedback": "Análise sobre conectivos e coesão." },
+    "C5": { "nota": 160, "titulo": "Proposta de intervenção", "feedback": "Detalhamento dos elementos encontrados e faltantes." }
   },
-  "comentarioGeral": "..."
+  "comentarioGeral": "Diagnóstico construtivo apontando os principais pontos de atenção para a próxima redação."
 }`;
 
   let lastError = null;

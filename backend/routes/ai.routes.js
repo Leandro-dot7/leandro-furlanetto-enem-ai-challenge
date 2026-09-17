@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { tutorChat, gerarSimulado, corrigirRedacao } from '../controllers/aiController.js';
+import { tutorChat, gerarSimulado, corrigirRedacao, gerarTemaRedacao } from '../controllers/aiController.js';
 
 const router = Router();
 
@@ -16,6 +16,12 @@ router.post('/tutor', tutorChat);
  * Body: { materia: string, numQuestoes: number }
  */
 router.post('/simulado/gerar', gerarSimulado);
+
+/**
+ * POST /api/ai/redacao/gerar-tema
+ * Gera uma proposta de tema inédita estilo ENEM.
+ */
+router.post('/redacao/gerar-tema', gerarTemaRedacao);
 
 /**
  * POST /api/ai/redacao/corrigir

@@ -282,7 +282,7 @@ export default function Simulado() {
       // Salvar no Supabase
       if (user) {
         try {
-          await supabase.from('simulados').insert({
+          const { error: insertErr } = await supabase.from('simulados').insert({
             user_id: user.id,
             materia,
             total_questoes: questoes.length,
@@ -291,8 +291,11 @@ export default function Simulado() {
             questoes,
             criado_em: new Date().toISOString(),
           });
-        } catch {
-          // Não bloqueia o fluxo se falhar ao salvar
+          if (insertErr) {
+            console.warn('[Supabase simulados insert warning]:', insertErr.message);
+          }
+        } catch (e) {
+          console.warn('[Supabase connection warning]:', e.message);
         }
       }
 
