@@ -9,11 +9,10 @@ function getAi() {
   return new GoogleGenAI({ apiKey });
 }
 
-// Lista de modelos ordenados por prioridade com fallback automático em caso de 503 / indisponibilidade
+// Lista de modelos suportados com fallback automático
 const CANDIDATE_MODELS = [
-  'gemini-2.5-flash',
   'gemini-3.6-flash',
-  'gemini-2.5-flash-lite',
+  'gemini-3.5-flash-lite',
 ];
 
 // ─── System Prompt do Tutor ENEM ─────────────────────────────────────────────

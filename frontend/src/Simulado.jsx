@@ -313,6 +313,7 @@ export default function Simulado() {
   if (fase === 'questoes' && questoes.length > 0) {
     return (
       <QuestaoScreen
+        key={questaoAtual}
         questao={questoes[questaoAtual]}
         totalQuestoes={questoes.length}
         onResponder={handleResponder}
