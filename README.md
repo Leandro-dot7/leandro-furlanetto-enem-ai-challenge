@@ -14,6 +14,8 @@ O projeto combina React, Express, Supabase e Google Gemini. O backend concentra 
 - Histórico de simulados e redações com Row Level Security (RLS).
 - Interface responsiva com suporte a teclado, landmarks e mensagens acessíveis.
 
+O modo claro é o padrão da primeira visita; o alternador de tema fica disponível no canto superior direito e a escolha é persistida no navegador.
+
 ## Arquitetura
 
 ```mermaid
@@ -35,6 +37,14 @@ flowchart LR
 ```
 
 O frontend protege as páginas para melhorar a experiência, mas a autorização real das rotas de IA acontece no backend. O Tutor mantém o histórico confiável por usuário no servidor; o navegador envia somente a nova mensagem e o identificador da conversa.
+
+## RAG de questões ENEM
+
+O Tutor e o gerador de simulados usam um índice lexical local com questões de **2015 a 2023**. A ingestão atual possui **1.553 questões**: 181 (2015), 181 (2016), 181 (2017), 181 (2018), 107 (2019), 180 (2020), 181 (2021), 181 (2022) e 180 (2023). A quantidade de 2019 é a quantidade retornada pela API, sem preenchimento artificial.
+
+O Tutor recupera uma referência curta antes de responder. O gerador de simulados recupera até duas referências compactas da área solicitada antes de gerar questões inéditas. O corpus é lido localmente durante as perguntas; a API externa é usada somente no job de ingestão. O contexto enviado ao modelo é limitado para evitar o envio do corpus inteiro e reduzir dependência de rede.
+
+Os arquivos do corpus ficam em `backend/data/enem-rag/` e são ignorados pelo Git. Após uma nova ingestão, reinicie o backend para recarregar o índice em memória. A API é comunitária; valide amostras contra o INEP antes de usar o corpus como fonte oficial.
 
 ## Stack
 
@@ -76,7 +86,7 @@ Copy-Item .env.example .env
 Preencha `backend/.env`:
 
 ```env
-PORT=3000
+PORT=5000
 GEMINI_API_KEY=sua_chave_do_gemini
 CORS_ORIGIN=http://localhost:5173
 SUPABASE_URL=https://seu-projeto.supabase.co
@@ -123,7 +133,7 @@ Crie `frontend/.env.local`:
 ```env
 VITE_SUPABASE_URL=https://seu-projeto.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sua_chave_anon_supabase
-VITE_API_URL=http://localhost:3000/api
+VITE_API_URL=http://localhost:5000/api
 ```
 
 Inicie:
@@ -148,8 +158,12 @@ npm run build
 No backend:
 
 ```powershell
-npm start
+node --check services/enemRagService.js
+node --check services/geminiService.js
+npm audit --omit=dev --audit-level=high
 ```
+
+Para executar o backend em desenvolvimento, use `npm run dev` ou, em modo de execução, `npm start`.
 
 O projeto também possui auditorias documentadas em `relatorios/`, incluindo as rodadas Argos e Morpheus e as correções aplicadas pela Minerva.
 
@@ -159,7 +173,13 @@ O projeto também possui auditorias documentadas em `relatorios/`, incluindo as 
 - CORS é configurável por ambiente; ele não é usado como autenticação.
 - O limite de IA e o contexto do Tutor estão em memória na configuração atual. Para múltiplas instâncias, migrar esses estados para Redis ou Supabase.
 - Testes dinâmicos contra homologação exigem URL, janela e contas de teste autorizadas.
-- O Tutor e o gerador de simulados usam RAG lexical inicial com cache local da API enem.dev; a evolução é complementar os anos recentes pelo INEP e migrar para busca híbrida quando houver métricas de qualidade.
+- O Tutor e o gerador de simulados usam RAG lexical com cache local da API enem.dev; a evolução é validar qualidade, origem e busca híbrida quando houver métricas suficientes.
+
+## Operação e limites do RAG
+
+- A API de questões é comunitária e não substitui a validação com fonte oficial do INEP.
+- A economia efetiva de tokens e latência deve ser medida em homologação; o sistema limita o contexto, mas não garante redução para toda pergunta.
+- O índice lexical é carregado em memória no processo atual. Para múltiplas instâncias, migrar o índice e os limites para uma camada compartilhada.
 
 ## Roadmap de RAG para simulados
 
