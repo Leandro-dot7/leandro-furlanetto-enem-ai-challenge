@@ -10,7 +10,7 @@ const PAGE_SIZE = 10;
 const REQUEST_TIMEOUT_MS = 20_000;
 
 function parseYears() {
-  const rawYears = process.argv.slice(2).join(',') || process.env.ENEM_RAG_YEARS || '2023';
+  const rawYears = process.argv.slice(2).join(',') || process.env.ENEM_RAG_YEARS || '2015,2016,2017,2018,2019,2020,2021,2022,2023';
   const years = [...new Set(rawYears.split(',').map((year) => year.trim()).filter((year) => /^\d{4}$/.test(year)))];
   if (years.length === 0 || years.length > 10) throw new Error('Informe de 1 a 10 anos no formato 2023 ou 2022,2023.');
   return years;

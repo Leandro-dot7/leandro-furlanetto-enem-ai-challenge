@@ -8,6 +8,7 @@ const MAX_QUERY_LENGTH = 4_000;
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_CORPUS_QUESTIONS = 5_000;
 const DEFAULT_RESULT_LIMIT = 1;
+const SIMULADO_RESULT_LIMIT = 2;
 const STOP_WORDS = new Set([
   'a', 'ao', 'aos', 'as', 'com', 'como', 'da', 'das', 'de', 'do', 'dos', 'e', 'em',
   'essa', 'esse', 'esta', 'este', 'eu', 'foi', 'isso', 'na', 'nas', 'no', 'nos',
@@ -121,39 +122,53 @@ function scoreQuestion(question, queryTokens) {
   return score;
 }
 
-function formatReference(question) {
+function formatReference(question, { compact = false } = {}) {
   const source = `${question.title || `ENEM ${question.year || ''}`}`.trim();
   const alternatives = question.alternatives
     .map((alternative) => `${alternative.letter}) ${alternative.text}`)
     .join(' | ');
   return [
     `Fonte: ${source}${question.discipline ? ` — ${question.discipline}` : ''}${question.language ? ` — ${question.language}` : ''}`,
-    question.context ? `Contexto: ${question.context}` : null,
-    question.alternativesIntroduction ? `Comando: ${question.alternativesIntroduction}` : null,
-    alternatives ? `Alternativas: ${trimText(alternatives, 550)}` : null,
+    question.context ? `Contexto: ${trimText(question.context, compact ? 360 : 600)}` : null,
+    question.alternativesIntroduction ? `Comando: ${trimText(question.alternativesIntroduction, compact ? 180 : 300)}` : null,
+    alternatives ? `Alternativas: ${trimText(alternatives, compact ? 360 : 550)}` : null,
     question.correctAlternative ? `Gabarito publicado: ${question.correctAlternative}` : null,
   ].filter(Boolean).join('\n');
 }
 
-/** Retorna referências curtas do corpus local, sem chamar a API durante a pergunta. */
-export async function getTutorRagContext(query, { limit = DEFAULT_RESULT_LIMIT } = {}) {
-  if (typeof query !== 'string' || !query.trim()) return null;
+async function findReferences(query, { limit = DEFAULT_RESULT_LIMIT, compact = false } = {}) {
+  if (typeof query !== 'string' || !query.trim()) return [];
   const safeQuery = query.trim().slice(0, MAX_QUERY_LENGTH);
   const queryTokens = tokenize(safeQuery);
-  if (queryTokens.length === 0) return null;
+  if (queryTokens.length === 0) return [];
 
+  const corpus = await getCorpus();
+  return corpus
+    .map((question) => ({ question, score: scoreQuestion(question, queryTokens) }))
+    .filter(({ score }) => score >= 2)
+    .sort((left, right) => right.score - left.score || (left.question.year || 0) - (right.question.year || 0) || (left.question.index || 0) - (right.question.index || 0))
+    .slice(0, Math.max(1, Math.min(Number(limit) || DEFAULT_RESULT_LIMIT, 3)))
+    .map(({ question }) => formatReference(question, { compact }));
+}
+
+/** Retorna referências curtas do corpus local, sem chamar a API durante a pergunta. */
+export async function getTutorRagContext(query, { limit = DEFAULT_RESULT_LIMIT } = {}) {
   try {
-    const corpus = await getCorpus();
-    const matches = corpus
-      .map((question) => ({ question, score: scoreQuestion(question, queryTokens) }))
-      .filter(({ score }) => score >= 2)
-      .sort((left, right) => right.score - left.score || (left.question.index || 0) - (right.question.index || 0))
-      .slice(0, Math.max(1, Math.min(Number(limit) || DEFAULT_RESULT_LIMIT, 3)));
-
-    if (matches.length === 0) return null;
-    return matches.map(({ question }) => formatReference(question)).join('\n\n---\n\n');
+    const references = await findReferences(query, { limit });
+    return references.length > 0 ? references.join('\n\n---\n\n') : null;
   } catch (error) {
     console.warn('[enemRag] Falha ao ler corpus local; seguindo sem RAG:', error.message);
+    return null;
+  }
+}
+
+/** Recupera exemplos curtos por área antes da geração de um simulado. */
+export async function getSimuladoRagContext(materia, { limit = SIMULADO_RESULT_LIMIT } = {}) {
+  try {
+    const references = await findReferences(`${materia} questão ENEM`, { limit, compact: true });
+    return references.length > 0 ? references.join('\n\n---\n\n') : null;
+  } catch (error) {
+    console.warn('[enemRag] Falha ao recuperar referências do simulado; seguindo sem RAG:', error.message);
     return null;
   }
 }

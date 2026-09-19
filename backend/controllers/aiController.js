@@ -1,5 +1,5 @@
 import * as gemini from '../services/geminiService.js';
-import { getTutorRagContext } from '../services/enemRagService.js';
+import { getSimuladoRagContext, getTutorRagContext } from '../services/enemRagService.js';
 import {
   appendTutorTurn,
   getTutorConversation,
@@ -66,7 +66,9 @@ export async function gerarSimulado(req, res) {
   }
 
   try {
-    const simulado = await gemini.gerarSimulado(materia.trim(), numQuestoes);
+    const materiaSegura = materia.trim();
+    const retrievalContext = await getSimuladoRagContext(materiaSegura);
+    const simulado = await gemini.gerarSimulado(materiaSegura, numQuestoes, { retrievalContext });
     return res.status(200).json(simulado);
   } catch (err) {
     console.error('[gerarSimulado] Erro:', err.message);

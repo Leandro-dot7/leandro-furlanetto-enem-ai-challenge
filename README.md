@@ -82,7 +82,7 @@ CORS_ORIGIN=http://localhost:5173
 SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_PUBLISHABLE_KEY=sua_chave_anon_supabase
 ENEM_API_BASE_URL=https://api.enem.dev/v1
-ENEM_RAG_YEARS=2023
+ENEM_RAG_YEARS=2015,2016,2017,2018,2019,2020,2021,2022,2023
 ```
 
 Inicie:
@@ -91,13 +91,13 @@ Inicie:
 npm run dev
 ```
 
-Para carregar o corpus inicial do Tutor, execute uma ingestão versionada antes de iniciar o backend:
+Para carregar o corpus inicial do Tutor e dos simulados, execute uma ingestão versionada antes de iniciar o backend:
 
 ```powershell
-npm run rag:ingest -- 2023
+npm run rag:ingest -- 2015 2016 2017 2018 2019 2020 2021 2022 2023
 ```
 
-O job respeita o limite da API, grava o cache em `backend/data/enem-rag/` (não versionado) e o Tutor usa somente referências locais durante a conversa. Após uma nova ingestão, reinicie o backend para recarregar o corpus.
+O job respeita o limite da API, grava o cache em `backend/data/enem-rag/` (não versionado) e o Tutor e o gerador de simulados consultam somente referências locais durante a geração. Após uma nova ingestão, reinicie o backend para recarregar o corpus.
 
 Endpoints principais:
 
@@ -159,9 +159,11 @@ O projeto também possui auditorias documentadas em `relatorios/`, incluindo as 
 - CORS é configurável por ambiente; ele não é usado como autenticação.
 - O limite de IA e o contexto do Tutor estão em memória na configuração atual. Para múltiplas instâncias, migrar esses estados para Redis ou Supabase.
 - Testes dinâmicos contra homologação exigem URL, janela e contas de teste autorizadas.
-- O gerador de simulados ainda usa geração direta. O Tutor já possui um RAG lexical inicial com cache local da API enem.dev; a evolução é complementar os anos recentes pelo INEP e migrar para busca híbrida quando houver métricas de qualidade.
+- O Tutor e o gerador de simulados usam RAG lexical inicial com cache local da API enem.dev; a evolução é complementar os anos recentes pelo INEP e migrar para busca híbrida quando houver métricas de qualidade.
 
 ## Roadmap de RAG para simulados
+
+Estado atual: o corpus local cobre 2015–2023 e o gerador consulta até duas referências compactas da área antes de criar novas questões. Os itens abaixo são a evolução de qualidade e governança, não pré-requisitos para o fluxo atual.
 
 1. Catalogar habilidades da Matriz ENEM e fontes licenciadas.
 2. Criar banco de questões aprovadas, com dificuldade, habilidade, tema e hash.
