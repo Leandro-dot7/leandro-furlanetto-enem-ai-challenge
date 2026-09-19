@@ -62,6 +62,66 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+:root {
+  color-scheme: light;
+}
+
+:root.theme-dark {
+  color-scheme: dark;
+}
+
+/* O modo claro continua sendo o padrão. Estas substituições preservam os
+   componentes existentes e deixam o tema escuro consistente entre páginas. */
+.theme-dark body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+.theme-dark .bg-slate-100 { background-color: #0f172a !important; }
+.theme-dark .bg-slate-50 { background-color: #172033 !important; }
+.theme-dark .bg-white { background-color: #1e293b !important; }
+.theme-dark .bg-slate-200 { background-color: #334155 !important; }
+.theme-dark .bg-slate-300 { background-color: #475569 !important; }
+.theme-dark .border-slate-100,
+.theme-dark .border-slate-200 { border-color: #334155 !important; }
+.theme-dark .border-slate-300 { border-color: #475569 !important; }
+.theme-dark .text-slate-900 { color: #f8fafc !important; }
+.theme-dark .text-slate-800 { color: #e2e8f0 !important; }
+.theme-dark .text-slate-700,
+.theme-dark .text-slate-600 { color: #cbd5e1 !important; }
+.theme-dark .text-slate-500,
+.theme-dark .text-slate-400 { color: #94a3b8 !important; }
+.theme-dark .placeholder-slate-400::placeholder { color: #94a3b8 !important; }
+.theme-dark .hover\:bg-slate-50:hover { background-color: #273449 !important; }
+.theme-dark .hover\:bg-slate-700\/60:hover { background-color: rgb(71 85 105 / 0.6) !important; }
+.theme-dark .hover\:text-slate-900:hover { color: #f8fafc !important; }
+.theme-dark .theme-toggle { background-color: #1e293b !important; color: #e2e8f0 !important; border-color: #475569 !important; }
+.theme-dark .theme-toggle:hover { background-color: #334155 !important; }
+
+/* Superfícies semânticas usadas por feedback, alternativas e avisos. */
+.theme-dark .bg-indigo-50 { background-color: #1e1b4b !important; }
+.theme-dark .bg-indigo-100 { background-color: #312e81 !important; }
+.theme-dark .bg-violet-100 { background-color: #3b0764 !important; }
+.theme-dark .bg-amber-50 { background-color: #422006 !important; }
+.theme-dark .bg-amber-100 { background-color: #78350f !important; }
+.theme-dark .bg-emerald-50 { background-color: #064e3b !important; }
+.theme-dark .bg-emerald-100 { background-color: #065f46 !important; }
+.theme-dark .bg-blue-50 { background-color: #172554 !important; }
+.theme-dark .bg-red-50 { background-color: #450a0a !important; }
+.theme-dark .bg-red-100 { background-color: #7f1d1d !important; }
+.theme-dark .border-indigo-100 { border-color: #3730a3 !important; }
+.theme-dark .border-amber-200 { border-color: #92400e !important; }
+.theme-dark .border-emerald-200 { border-color: #047857 !important; }
+.theme-dark .border-blue-200 { border-color: #1d4ed8 !important; }
+.theme-dark .border-red-200 { border-color: #b91c1c !important; }
+.theme-dark .text-indigo-700 { color: #a5b4fc !important; }
+.theme-dark .text-amber-700,
+.theme-dark .text-amber-800 { color: #fcd34d !important; }
+.theme-dark .text-emerald-700,
+.theme-dark .text-emerald-800 { color: #6ee7b7 !important; }
+.theme-dark .text-blue-800 { color: #93c5fd !important; }
+.theme-dark .text-red-700,
+.theme-dark .text-red-800 { color: #fca5a5 !important; }
+
 #root {
   min-height: 100svh;
 }
@@ -154,3 +214,12 @@ body {
   border-top: 1px solid #e2e8f0;
   margin: 0.75rem 0;
 }
+
+.theme-dark .prose-ai,
+.theme-dark .prose-ai blockquote { color: #cbd5e1; }
+.theme-dark .prose-ai strong,
+.theme-dark .prose-ai h1, .theme-dark .prose-ai h2, .theme-dark .prose-ai h3,
+.theme-dark .prose-ai h4, .theme-dark .prose-ai h5, .theme-dark .prose-ai h6 { color: #f8fafc; }
+.theme-dark .prose-ai code { background: #334155; color: #f8fafc; }
+.theme-dark .prose-ai blockquote { border-color: #64748b; }
+.theme-dark .prose-ai hr { border-color: #475569; }

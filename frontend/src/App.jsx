@@ -1,8 +1,10 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { ThemeProvider } from './context/ThemeContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Layout from './components/Layout.jsx';
+import ThemeToggle from './components/ThemeToggle.jsx';
 import './App.css';
 
 import Login from './Login.jsx';
@@ -28,8 +30,10 @@ function PrivatePage({ children }) {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <ThemeToggle />
         <Routes>
           {/* Páginas públicas */}
           <Route path="/" element={<Login />} />
@@ -46,7 +50,8 @@ export default function App() {
           <Route path="/redacao" element={<PrivatePage><Redacao /></PrivatePage>} />
           <Route path="/perfil" element={<PrivatePage><Perfil /></PrivatePage>} />
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
