@@ -22,12 +22,14 @@ flowchart LR
   Auth[(Supabase Auth)]
   Data[(Supabase PostgreSQL + RLS)]
   API[Express API]
+  RAG[Corpus local ENEM]
   AI[Gemini Service]
 
   Browser -->|sessão e histórico| Auth
   Browser -->|dados protegidos| Data
   Browser -->|Bearer token| API
   API -->|valida sessão + rate limit| Auth
+  API -->|recupera referência curta| RAG
   API --> AI
   AI --> Gemini[Google Gemini]
 ```
@@ -79,6 +81,8 @@ GEMINI_API_KEY=sua_chave_do_gemini
 CORS_ORIGIN=http://localhost:5173
 SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_PUBLISHABLE_KEY=sua_chave_anon_supabase
+ENEM_API_BASE_URL=https://api.enem.dev/v1
+ENEM_RAG_YEARS=2023
 ```
 
 Inicie:
@@ -86,6 +90,14 @@ Inicie:
 ```powershell
 npm run dev
 ```
+
+Para carregar o corpus inicial do Tutor, execute uma ingestão versionada antes de iniciar o backend:
+
+```powershell
+npm run rag:ingest -- 2023
+```
+
+O job respeita o limite da API, grava o cache em `backend/data/enem-rag/` (não versionado) e o Tutor usa somente referências locais durante a conversa. Após uma nova ingestão, reinicie o backend para recarregar o corpus.
 
 Endpoints principais:
 
@@ -147,7 +159,7 @@ O projeto também possui auditorias documentadas em `relatorios/`, incluindo as 
 - CORS é configurável por ambiente; ele não é usado como autenticação.
 - O limite de IA e o contexto do Tutor estão em memória na configuração atual. Para múltiplas instâncias, migrar esses estados para Redis ou Supabase.
 - Testes dinâmicos contra homologação exigem URL, janela e contas de teste autorizadas.
-- O gerador de simulados ainda usa geração direta. A próxima evolução é um banco de questões com cache, metadados e RAG híbrido apenas quando necessário.
+- O gerador de simulados ainda usa geração direta. O Tutor já possui um RAG lexical inicial com cache local da API enem.dev; a evolução é complementar os anos recentes pelo INEP e migrar para busca híbrida quando houver métricas de qualidade.
 
 ## Roadmap de RAG para simulados
 

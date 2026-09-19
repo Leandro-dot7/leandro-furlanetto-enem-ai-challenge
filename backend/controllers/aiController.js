@@ -1,4 +1,5 @@
 import * as gemini from '../services/geminiService.js';
+import { getTutorRagContext } from '../services/enemRagService.js';
 import {
   appendTutorTurn,
   getTutorConversation,
@@ -30,10 +31,11 @@ export async function tutorChat(req, res) {
   res.once('close', abortOnDisconnect);
 
   try {
+    const ragContext = await getTutorRagContext(safeMessage);
     const resposta = await gemini.chatWithTutor([
       ...conversation.history,
       { role: 'user', parts: [{ text: safeMessage }] },
-    ], { signal: abortController.signal });
+    ], { signal: abortController.signal, retrievalContext: ragContext });
 
     if (abortController.signal.aborted) return;
     appendTutorTurn(conversation, safeMessage, resposta);
