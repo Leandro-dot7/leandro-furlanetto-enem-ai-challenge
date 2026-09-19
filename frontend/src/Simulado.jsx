@@ -157,7 +157,7 @@ function QuestaoScreen({ questao, totalQuestoes, onResponder }) {
         {/* Alternativas */}
         <div className="space-y-2.5 mb-6" role="radiogroup" aria-label="Alternativas">
           {alternativas.map(([letra_op, texto]) => {
-            let classes = 'flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all text-sm';
+            let classes = 'flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all text-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2';
 
             if (respondida) {
               if (letra_op === gabarito) {
@@ -278,6 +278,7 @@ export default function Simulado() {
     } else {
       // Calculando acertos
       const acertos = questoes.filter((q, i) => novasRespostas[i] === q.gabarito).length;
+      let persistError = '';
 
       // Salvar no Supabase
       if (user) {
@@ -293,9 +294,11 @@ export default function Simulado() {
           });
           if (insertErr) {
             console.warn('[Supabase simulados insert warning]:', insertErr.message);
+            persistError = insertErr.message;
           }
         } catch (e) {
           console.warn('[Supabase connection warning]:', e.message);
+          persistError = e.message;
         }
       }
 
@@ -306,6 +309,7 @@ export default function Simulado() {
           materia,
           questoes,
           respostas: novasRespostas,
+          persistError,
         },
       });
     }

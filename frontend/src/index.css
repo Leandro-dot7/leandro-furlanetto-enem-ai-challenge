@@ -99,13 +99,58 @@ body {
   color: #1e293b;
   font-weight: 600;
 }
+.prose-ai h1, .prose-ai h2, .prose-ai h3,
+.prose-ai h4, .prose-ai h5, .prose-ai h6 {
+  color: #1e293b;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0.25rem 0 0.5rem;
+}
+.prose-ai h1 { font-size: 1.125rem; }
+.prose-ai h2 { font-size: 1rem; }
+.prose-ai h3 { font-size: 0.9375rem; }
+.prose-ai h4, .prose-ai h5, .prose-ai h6 { font-size: 0.875rem; }
 .prose-ai p {
   margin-bottom: 0.75rem;
+  white-space: pre-wrap;
 }
 .prose-ai ul, .prose-ai ol {
   padding-left: 1.5rem;
   margin-bottom: 0.75rem;
 }
+.prose-ai ul { list-style: disc; }
+.prose-ai ol { list-style: decimal; }
 .prose-ai li {
   margin-bottom: 0.25rem;
+}
+.prose-ai code {
+  background: #e2e8f0;
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.3rem;
+  font-size: 0.875em;
+}
+.prose-ai pre {
+  overflow-x: auto;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin: 0.5rem 0 0.75rem;
+}
+.prose-ai pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+.prose-ai blockquote {
+  border-left: 3px solid #cbd5e1;
+  color: #475569;
+  padding-left: 0.75rem;
+  margin: 0.5rem 0 0.75rem;
+  white-space: pre-wrap;
+}
+.prose-ai hr {
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+  margin: 0.75rem 0;
 }

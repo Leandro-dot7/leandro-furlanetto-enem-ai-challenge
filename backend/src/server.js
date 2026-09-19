@@ -18,8 +18,19 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+app.use((_req, res, next) => {
+  res.set({
+    'Cache-Control': 'no-store',
+    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+    'Referrer-Policy': 'no-referrer',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+  });
+  next();
+});
+
 // ─── Body parsing ─────────────────────────────────────────────────────────────
-app.use(express.json());
+app.use(express.json({ limit: '64kb' }));
 
 // ─── MongoDB (opcional) ───────────────────────────────────────────────────────
 // Apenas conecta se MONGODB_URI estiver definido no .env

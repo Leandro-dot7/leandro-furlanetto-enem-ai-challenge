@@ -134,6 +134,11 @@ export default function Login() {
                 />
               </div>
             </div>
+            <div className="text-right -mt-2">
+              <Link to="/recuperar-senha" className="text-xs text-indigo-600 hover:text-indigo-700 hover:underline">
+                Esqueci minha senha
+              </Link>
+            </div>
 
             {/* Erro */}
             {error && (

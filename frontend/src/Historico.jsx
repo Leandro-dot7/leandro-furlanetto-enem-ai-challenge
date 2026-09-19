@@ -47,12 +47,14 @@ export default function Historico() {
   const [redacoes, setRedacoes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [aba, setAba] = useState('simulados'); // simulados | redacoes
+  const [dataError, setDataError] = useState('');
 
   useEffect(() => {
     if (!user) return;
     async function fetchData() {
       setLoading(true);
-      const [{ data: sims }, { data: reds }] = await Promise.all([
+      setDataError('');
+      const [{ data: sims, error: simsError }, { data: reds, error: redsError }] = await Promise.all([
         supabase
           .from('simulados')
           .select('*')
@@ -64,11 +66,17 @@ export default function Historico() {
           .eq('user_id', user.id)
           .order('criado_em', { ascending: false }),
       ]);
+      if (simsError) throw simsError;
+      if (redsError) throw redsError;
       setSimulados(sims || []);
       setRedacoes(reds || []);
       setLoading(false);
     }
-    fetchData().catch(() => setLoading(false));
+    fetchData().catch((error) => {
+      console.error('[Historico] Falha ao carregar histórico:', error.message);
+      setDataError('Não foi possível carregar seu histórico. Confirme se o schema do Supabase foi executado.');
+      setLoading(false);
+    });
   }, [user]);
 
   // Dados do gráfico — últimos 10 simulados em ordem cronológica
@@ -104,6 +112,11 @@ export default function Historico() {
         </div>
       ) : (
         <>
+          {dataError && (
+            <div role="alert" className="p-3 mb-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+              {dataError}
+            </div>
+          )}
           {/* Cards resumo */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[

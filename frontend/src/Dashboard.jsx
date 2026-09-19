@@ -63,6 +63,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState({ total: 0, mediaAcertos: 0, redacoes: 0 });
   const [loading, setLoading] = useState(true);
+  const [dataError, setDataError] = useState('');
 
   const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Estudante';
 
@@ -72,15 +73,18 @@ export default function Dashboard() {
 
       try {
         // Busca histórico de simulados do usuário no Supabase
-        const { data: simulados } = await supabase
+        const { data: simulados, error: simuladosError } = await supabase
           .from('simulados')
           .select('acertos, total_questoes')
           .eq('user_id', user.id);
 
-        const { count: redacoes } = await supabase
+        const { count: redacoes, error: redacoesError } = await supabase
           .from('redacoes')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id);
+
+        if (simuladosError) throw simuladosError;
+        if (redacoesError) throw redacoesError;
 
         if (simulados && simulados.length > 0) {
           const media =
@@ -95,7 +99,9 @@ export default function Dashboard() {
         } else {
           setStats({ total: 0, mediaAcertos: 0, redacoes: redacoes || 0 });
         }
-      } catch {
+      } catch (error) {
+        console.error('[Dashboard] Falha ao carregar histórico:', error.message);
+        setDataError('Não foi possível carregar seu histórico. Confirme se o schema do Supabase foi executado.');
         // Silencia erros de tabela não existente (setup inicial)
       } finally {
         setLoading(false);
@@ -119,6 +125,11 @@ export default function Dashboard() {
 
       {/* Estatísticas */}
       <section aria-label="Suas estatísticas de estudo">
+        {dataError && (
+          <div role="alert" className="p-3 mb-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+            {dataError}
+          </div>
+        )}
         <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
           Seu progresso
         </h2>

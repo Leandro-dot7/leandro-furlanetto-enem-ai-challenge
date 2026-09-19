@@ -14,6 +14,8 @@ import Historico from './Historico.jsx';
 import TutorIA from './TutorAI.jsx';
 import Redacao from './Redacao.jsx';
 import Perfil from './Perfil.jsx';
+import RecuperarSenha from './RecuperarSenha.jsx';
+import RedefinirSenha from './RedefinirSenha.jsx';
 
 /** Wrapper: envolve páginas protegidas com Layout + ProtectedRoute */
 function PrivatePage({ children }) {
@@ -32,6 +34,8 @@ export default function App() {
           {/* Páginas públicas */}
           <Route path="/" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+          <Route path="/redefinir-senha" element={<RedefinirSenha />} />
 
           {/* Páginas protegidas — envolvidas no Layout */}
           <Route path="/dashboard" element={<PrivatePage><Dashboard /></PrivatePage>} />

@@ -66,6 +66,11 @@ function ResultadoCorrecao({ resultado, onNova }) {
     <div className="space-y-5 animate-slide-up">
       {/* Nota geral */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        {resultado.persistError && (
+          <div role="alert" className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+            Redação corrigida, mas não foi possível salvar no histórico: {resultado.persistError}
+          </div>
+        )}
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-xl font-bold text-slate-900">Resultado da Redação</h2>
@@ -183,6 +188,7 @@ export default function Redacao() {
         });
         if (insertError) {
           console.warn('[Supabase redacoes insert warning]:', insertError.message);
+          setResultado((current) => ({ ...current, persistError: insertError.message }));
         }
       }
     } catch (err) {

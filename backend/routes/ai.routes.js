@@ -1,12 +1,16 @@
 import { Router } from 'express';
 import { tutorChat, gerarSimulado, corrigirRedacao, gerarTemaRedacao } from '../controllers/aiController.js';
+import { aiRateLimit, requireSupabaseUser } from '../middleware/aiSecurity.js';
 
 const router = Router();
+
+// React route guards do not protect direct HTTP requests.
+router.use(requireSupabaseUser, aiRateLimit);
 
 /**
  * POST /api/ai/tutor
  * Chat com o Tutor ENEM.
- * Body: { messages: [{role: 'user'|'model', parts: [{text: string}]}] }
+ * Body: { message: string, conversationId?: string|null }
  */
 router.post('/tutor', tutorChat);
 

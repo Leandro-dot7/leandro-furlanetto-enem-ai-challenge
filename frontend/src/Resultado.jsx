@@ -94,7 +94,7 @@ export default function Resultado() {
     );
   }
 
-  const { acertos, total, materia, questoes, respostas } = state;
+  const { acertos, total, materia, questoes, respostas, persistError } = state;
   const pct = acertos / total;
   const pontuacao = calcPontuacao(acertos, total);
   const desempenho = getDesempenho(pct);
@@ -103,6 +103,11 @@ export default function Resultado() {
     <div className="max-w-2xl mx-auto space-y-6 animate-slide-up">
       {/* Card de resultado */}
       <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
+        {persistError && (
+          <div role="alert" className="mb-5 p-3 text-left bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+            Resultado calculado, mas não foi possível salvar no histórico: {persistError}
+          </div>
+        )}
         <div className={`flex items-center justify-center w-16 h-16 rounded-2xl bg-${desempenho.color}-100 mx-auto mb-4`}>
           <Trophy size={28} className={`text-${desempenho.color}-600`} aria-hidden="true" />
         </div>

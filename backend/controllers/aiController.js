@@ -1,65 +1,66 @@
 import * as gemini from '../services/geminiService.js';
+import {
+  appendTutorTurn,
+  getTutorConversation,
+  validateTutorMessage,
+} from '../services/tutorConversationStore.js';
 
-// ─── POST /api/ai/tutor ───────────────────────────────────────────────────────
-/**
- * Handler do chat com o Tutor ENEM.
- * Body esperado: { messages: [{role: 'user'|'model', parts: [{text: string}]}] }
- */
+/** POST /api/ai/tutor — a conversa é mantida no servidor por usuário. */
 export async function tutorChat(req, res) {
-  const { messages } = req.body;
+  const { message, conversationId } = req.body;
+  const safeMessage = validateTutorMessage(message);
 
-  // Validação de entrada
-  if (!messages || !Array.isArray(messages) || messages.length === 0) {
-    return res.status(400).json({
-      error: 'Campo obrigatório ausente ou inválido: "messages" deve ser um array não vazio.',
-    });
+  if (!safeMessage) {
+    return res.status(400).json({ error: 'Mensagem inválida: envie um texto de até 4.000 caracteres.' });
+  }
+  // A primeira mensagem envia null; isso significa iniciar uma nova conversa.
+  if (conversationId !== undefined && conversationId !== null && (typeof conversationId !== 'string' || conversationId.length > 64)) {
+    return res.status(400).json({ error: 'Identificador de conversa inválido.' });
   }
 
-  // Valida que cada mensagem tem role e parts
-  for (const msg of messages) {
-    if (!msg.role || !Array.isArray(msg.parts) || msg.parts.length === 0) {
-      return res.status(400).json({
-        error:
-          'Cada mensagem deve ter "role" ("user" ou "model") e "parts" (array com ao menos um {text}).',
-      });
-    }
-  }
+  const conversation = getTutorConversation(req.authUser.id, conversationId);
+  if (!conversation) return res.status(404).json({ error: 'Conversa não encontrada.' });
+
+  // A client-side AbortController closes the HTTP request. Propagate that
+  // disconnect to the Gemini call so the backend stops waiting and cannot
+  // persist a response that the student cancelled.
+  const abortController = new AbortController();
+  const abortOnDisconnect = () => abortController.abort();
+  req.once('aborted', abortOnDisconnect);
+  res.once('close', abortOnDisconnect);
 
   try {
-    const resposta = await gemini.chatWithTutor(messages);
-    return res.status(200).json({ resposta });
+    const resposta = await gemini.chatWithTutor([
+      ...conversation.history,
+      { role: 'user', parts: [{ text: safeMessage }] },
+    ], { signal: abortController.signal });
+
+    if (abortController.signal.aborted) return;
+    appendTutorTurn(conversation, safeMessage, resposta);
+    return res.status(200).json({ resposta, conversationId: conversation.id });
   } catch (err) {
+    if (abortController.signal.aborted || err?.name === 'AbortError' || err?.code === 'ABORT_ERR') {
+      // The browser has already stopped waiting. Do not emit a 500, retry a
+      // fallback model or mutate the conversation after cancellation.
+      return;
+    }
     console.error('[tutorChat] Erro ao chamar Gemini:', err.message);
     return res.status(500).json({ error: 'Erro ao processar resposta do tutor. Tente novamente.' });
+  } finally {
+    req.removeListener('aborted', abortOnDisconnect);
+    res.removeListener('close', abortOnDisconnect);
   }
 }
 
-// ─── POST /api/ai/simulado/gerar ─────────────────────────────────────────────
-/**
- * Handler de geração de simulado ENEM.
- * Body esperado: { materia: string, numQuestoes: number }
- */
+/** POST /api/ai/simulado/gerar */
 export async function gerarSimulado(req, res) {
   const { materia, numQuestoes } = req.body;
 
-  // Validação de entrada
   if (!materia || typeof materia !== 'string' || materia.trim() === '') {
-    return res.status(400).json({
-      error: 'Campo obrigatório ausente ou inválido: "materia" deve ser uma string não vazia.',
-    });
+    return res.status(400).json({ error: 'Campo obrigatório inválido: "materia" deve ser uma string não vazia.' });
   }
-
-  if (
-    numQuestoes === undefined ||
-    numQuestoes === null ||
-    typeof numQuestoes !== 'number' ||
-    !Number.isInteger(numQuestoes) ||
-    numQuestoes < 1 ||
-    numQuestoes > 20
-  ) {
-    return res.status(400).json({
-      error: 'Campo obrigatório ausente ou inválido: "numQuestoes" deve ser um inteiro entre 1 e 20.',
-    });
+  if (!Number.isInteger(numQuestoes) || numQuestoes < 1 || numQuestoes > 20) {
+    return res.status(400).json({ error: 'Campo obrigatório inválido: "numQuestoes" deve ser um inteiro entre 1 e 20.' });
   }
 
   try {
@@ -67,21 +68,14 @@ export async function gerarSimulado(req, res) {
     return res.status(200).json(simulado);
   } catch (err) {
     console.error('[gerarSimulado] Erro:', err.message);
-
-    // Erro específico de JSON inválido retornado pela IA
-    if (err.message.includes('JSON inválido')) {
-      return res.status(502).json({ error: err.message });
-    }
-
-    return res.status(500).json({ error: 'Erro ao gerar simulado. Tente novamente.' });
+    return res.status(err.message.includes('JSON inválido') ? 502 : 500).json({
+      error: err.message.includes('JSON inválido') ? err.message : 'Erro ao gerar simulado. Tente novamente.',
+    });
   }
 }
 
-// ─── POST /api/ai/redacao/gerar-tema ─────────────────────────────────────────
-/**
- * Handler de geração de tema dinâmico para redação ENEM.
- */
-export async function gerarTemaRedacao(req, res) {
+/** POST /api/ai/redacao/gerar-tema */
+export async function gerarTemaRedacao(_req, res) {
   try {
     const temaData = await gemini.gerarTemaRedacao();
     return res.status(200).json(temaData);
@@ -91,32 +85,15 @@ export async function gerarTemaRedacao(req, res) {
   }
 }
 
-// ─── POST /api/ai/redacao/corrigir ───────────────────────────────────────────
-/**
- * Handler de correção de redação ENEM.
- * Body esperado: { tema: string, texto: string }
- */
+/** POST /api/ai/redacao/corrigir */
 export async function corrigirRedacao(req, res) {
   const { tema, texto } = req.body;
 
-  // Validação de entrada
   if (!tema || typeof tema !== 'string' || tema.trim() === '') {
-    return res.status(400).json({
-      error: 'Campo obrigatório ausente ou inválido: "tema" deve ser uma string não vazia.',
-    });
+    return res.status(400).json({ error: 'Campo obrigatório inválido: "tema" deve ser uma string não vazia.' });
   }
-
-  if (!texto || typeof texto !== 'string' || texto.trim() === '') {
-    return res.status(400).json({
-      error: 'Campo obrigatório ausente ou inválido: "texto" deve ser uma string não vazia.',
-    });
-  }
-
-  // Limite mínimo de tamanho para evitar redações em branco
-  if (texto.trim().length < 50) {
-    return res.status(400).json({
-      error: 'O texto da redação é muito curto (mínimo 50 caracteres).',
-    });
+  if (!texto || typeof texto !== 'string' || texto.trim().length < 50) {
+    return res.status(400).json({ error: 'O texto da redação deve ter ao menos 50 caracteres.' });
   }
 
   try {
@@ -124,12 +101,8 @@ export async function corrigirRedacao(req, res) {
     return res.status(200).json(correcao);
   } catch (err) {
     console.error('[corrigirRedacao] Erro:', err.message);
-
-    // Erro específico de JSON inválido retornado pela IA
-    if (err.message.includes('JSON inválido')) {
-      return res.status(502).json({ error: err.message });
-    }
-
-    return res.status(500).json({ error: 'Erro ao corrigir redação. Tente novamente.' });
+    return res.status(err.message.includes('JSON inválido') ? 502 : 500).json({
+      error: err.message.includes('JSON inválido') ? err.message : 'Erro ao corrigir redação. Tente novamente.',
+    });
   }
 }

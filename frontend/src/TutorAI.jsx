@@ -7,21 +7,150 @@
  */
 import React, { useState, useRef, useEffect } from 'react';
 import api from './lib/api';
-import { Send, BrainCircuit, User, Loader2, AlertCircle, RotateCcw } from 'lucide-react';
+import { Send, BrainCircuit, User, Loader2, AlertCircle, RotateCcw, X } from 'lucide-react';
 
-// Renderiza texto com negrito (**texto**) e quebras de linha
-function MessageText({ text }) {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return (
-    <span className="prose-ai whitespace-pre-wrap">
-      {parts.map((part, i) => {
-        if (part.startsWith('**') && part.endsWith('**')) {
-          return <strong key={i}>{part.slice(2, -2)}</strong>;
-        }
-        return <span key={i}>{part}</span>;
-      })}
-    </span>
-  );
+function safeLink(url) {
+  try {
+    const parsed = new URL(url);
+    return ['http:', 'https:'].includes(parsed.protocol) ? parsed.href : null;
+  } catch {
+    return null;
+  }
+}
+
+// Renderiza a formatação Markdown mais usada pelo Tutor sem inserir HTML bruto.
+function renderInlineMarkdown(text) {
+  const tokenPattern = /(!\[[^\]]*\]\([^)]+\)|\[[^\]]+\]\([^)]+\)|\*\*[^*]+?\*\*|__[^_]+?__|`[^`]+`|\*[^*\n]+?\*|_[^_\n]+?_)/g;
+  const parts = text.split(tokenPattern);
+
+  return parts.map((part, i) => {
+    if (!part) return null;
+    const imageMatch = part.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (imageMatch) return <span key={i}>[Imagem: {imageMatch[1] || 'conteúdo visual'}]</span>;
+
+    const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (linkMatch) {
+      const href = safeLink(linkMatch[2].trim());
+      return href ? (
+        <a key={i} href={href} target="_blank" rel="noreferrer" className="text-indigo-700 underline underline-offset-2 hover:text-indigo-900">
+          {linkMatch[1]}
+        </a>
+      ) : <span key={i}>{linkMatch[1]}</span>;
+    }
+
+    if ((part.startsWith('**') && part.endsWith('**')) || (part.startsWith('__') && part.endsWith('__'))) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return <code key={i}>{part.slice(1, -1)}</code>;
+    }
+    if ((part.startsWith('*') && part.endsWith('*')) || (part.startsWith('_') && part.endsWith('_'))) {
+      return <em key={i}>{part.slice(1, -1)}</em>;
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
+function isMarkdownBlockStart(line) {
+  return /^\s*(```|#{1,6}\s+|[-*+]\s+|\d+[.)]\s+|>\s?|---+\s*$)/.test(line);
+}
+
+function renderMarkdownBlocks(text) {
+  const lines = text.replace(/\r\n?/g, '\n').split('\n');
+  const blocks = [];
+  let index = 0;
+
+  while (index < lines.length) {
+    const line = lines[index];
+    if (!line.trim()) {
+      index += 1;
+      continue;
+    }
+
+    const codeStart = line.match(/^\s*```\s*([\w+-]*)\s*$/);
+    if (codeStart) {
+      const codeLines = [];
+      index += 1;
+      while (index < lines.length && !/^\s*```\s*$/.test(lines[index])) {
+        codeLines.push(lines[index]);
+        index += 1;
+      }
+      if (index < lines.length) index += 1;
+      blocks.push(
+        <pre key={`code-${index}`}>
+          <code className={codeStart[1] ? `language-${codeStart[1]}` : undefined}>
+            {codeLines.join('\n')}
+          </code>
+        </pre>,
+      );
+      continue;
+    }
+
+    const heading = line.match(/^\s*(#{1,6})\s+(.+?)\s*#*\s*$/);
+    if (heading) {
+      const Heading = `h${heading[1].length}`;
+      blocks.push(<Heading key={`heading-${index}`}>{renderInlineMarkdown(heading[2])}</Heading>);
+      index += 1;
+      continue;
+    }
+
+    if (/^\s*([-*+])\s+/.test(line)) {
+      const items = [];
+      while (index < lines.length) {
+        const item = lines[index].match(/^\s*[-*+]\s+(.+)$/);
+        if (!item) break;
+        items.push(<li key={`item-${index}`}>{renderInlineMarkdown(item[1])}</li>);
+        index += 1;
+      }
+      blocks.push(<ul key={`ul-${index}`}>{items}</ul>);
+      continue;
+    }
+
+    if (/^\s*\d+[.)]\s+/.test(line)) {
+      const items = [];
+      while (index < lines.length) {
+        const item = lines[index].match(/^\s*\d+[.)]\s+(.+)$/);
+        if (!item) break;
+        items.push(<li key={`ordered-item-${index}`}>{renderInlineMarkdown(item[1])}</li>);
+        index += 1;
+      }
+      blocks.push(<ol key={`ol-${index}`}>{items}</ol>);
+      continue;
+    }
+
+    if (/^\s*>\s?/.test(line)) {
+      const quoteLines = [];
+      while (index < lines.length) {
+        const quote = lines[index].match(/^\s*>\s?(.*)$/);
+        if (!quote) break;
+        quoteLines.push(quote[1]);
+        index += 1;
+      }
+      blocks.push(<blockquote key={`quote-${index}`}>{renderInlineMarkdown(quoteLines.join('\n'))}</blockquote>);
+      continue;
+    }
+
+    if (/^\s*---+\s*$/.test(line)) {
+      blocks.push(<hr key={`rule-${index}`} />);
+      index += 1;
+      continue;
+    }
+
+    const paragraphLines = [line];
+    index += 1;
+    while (index < lines.length && lines[index].trim() && !isMarkdownBlockStart(lines[index])) {
+      paragraphLines.push(lines[index]);
+      index += 1;
+    }
+    blocks.push(<p key={`paragraph-${index}`}>{renderInlineMarkdown(paragraphLines.join('\n'))}</p>);
+  }
+
+  return blocks;
+}
+
+function MessageText({ text, isUser = false }) {
+  if (isUser) return <span className="whitespace-pre-wrap text-white">{text}</span>;
+  return <div className="prose-ai">{renderMarkdownBlocks(text)}</div>;
 }
 
 // Bolha de mensagem
@@ -61,7 +190,7 @@ function MessageBubble({ msg }) {
               <span>{msg.error}</span>
             </span>
           ) : (
-            <MessageText text={msg.text} />
+            <MessageText text={msg.text} isUser={isUser} />
           )}
         </div>
       </div>
@@ -84,8 +213,10 @@ const SUGGESTIONS = [
 
 export default function TutorIA() {
   const [messages, setMessages] = useState([WELCOME]);
+  const [conversationId, setConversationId] = useState(null);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const abortControllerRef = useRef(null);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -103,17 +234,15 @@ export default function TutorIA() {
     setMessages((prev) => [...prev, userMsg, placeholderMsg]);
     setInput('');
     setLoading(true);
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
-      // Monta histórico no formato Gemini (exclui o placeholder)
-      const history = [...messages, userMsg]
-        .filter((m) => !m.loading && !m.error)
-        .map((m) => ({
-          role: m.role,
-          parts: [{ text: m.text }],
-        }));
-
-      const { data } = await api.post('/ai/tutor', { messages: history });
+      const { data } = await api.post('/ai/tutor', {
+        message: userMsg.text,
+        conversationId,
+      }, { signal: controller.signal });
+      setConversationId(data.conversationId);
 
       setMessages((prev) => {
         const updated = [...prev];
@@ -121,6 +250,10 @@ export default function TutorIA() {
         return updated;
       });
     } catch (err) {
+      if (err.message === 'canceled' || /cancel/i.test(err.message || '')) {
+        setMessages((prev) => prev.filter((msg, index) => !(index === prev.length - 1 && msg.loading)));
+        return;
+      }
       setMessages((prev) => {
         const updated = [...prev];
         updated[updated.length - 1] = {
@@ -130,9 +263,14 @@ export default function TutorIA() {
         return updated;
       });
     } finally {
+      abortControllerRef.current = null;
       setLoading(false);
       inputRef.current?.focus();
     }
+  }
+
+  function cancelRequest() {
+    abortControllerRef.current?.abort();
   }
 
   function handleSubmit(e) {
@@ -146,6 +284,7 @@ export default function TutorIA() {
 
   function handleReset() {
     setMessages([WELCOME]);
+    setConversationId(null);
     setInput('');
     inputRef.current?.focus();
   }
@@ -219,14 +358,26 @@ export default function TutorIA() {
           disabled={loading}
           className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm placeholder-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-slate-50 disabled:cursor-not-allowed transition-all"
         />
-        <button
-          type="submit"
-          disabled={loading || !input.trim()}
-          aria-label="Enviar pergunta"
-          className="flex items-center justify-center w-12 h-12 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed text-white rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex-shrink-0"
-        >
-          {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-        </button>
+        {loading ? (
+          <button
+            type="button"
+            onClick={cancelRequest}
+            aria-label="Parar resposta do Tutor"
+            className="flex items-center justify-center gap-1.5 px-4 h-12 bg-slate-700 hover:bg-slate-800 text-white text-sm font-medium rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 flex-shrink-0"
+          >
+            <X size={17} aria-hidden="true" />
+            Parar
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={!input.trim()}
+            aria-label="Enviar pergunta"
+            className="flex items-center justify-center w-12 h-12 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed text-white rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex-shrink-0"
+          >
+            <Send size={18} />
+          </button>
+        )}
       </form>
     </div>
   );

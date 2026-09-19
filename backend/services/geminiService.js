@@ -15,6 +15,12 @@ const CANDIDATE_MODELS = [
   'gemini-3.5-flash-lite',
 ];
 
+function createAbortError() {
+  const error = new Error('A geração da resposta foi cancelada.');
+  error.name = 'AbortError';
+  return error;
+}
+
 // ─── System Prompt do Tutor ENEM ─────────────────────────────────────────────
 const TUTOR_SYSTEM_PROMPT = `<PERSONA E PAPEL>
 Você é o "Tutor ENEM", um assistente virtual e tutor pedagógico altamente especializado e focado exclusivamente no Exame Nacional do Ensino Médio (ENEM). Seu objetivo é guiar estudantes de forma didática, encorajadora e alinhada com a Matriz de Referência do ENEM (Linguagens, Ciências Humanas, Ciências da Natureza e Matemática).
@@ -33,7 +39,11 @@ Você é o "Tutor ENEM", um assistente virtual e tutor pedagógico altamente esp
 /**
  * Envia mensagens ao tutor ENEM e retorna a resposta textual com fallback de modelo.
  */
-export async function chatWithTutor(messages) {
+export async function chatWithTutor(messages, { signal } = {}) {
+  if (signal?.aborted) {
+    throw createAbortError();
+  }
+
   const ai = getAi();
   const history = messages.slice(0, -1);
   const lastMessage = messages[messages.length - 1];
@@ -41,6 +51,10 @@ export async function chatWithTutor(messages) {
   let lastError = null;
 
   for (const model of CANDIDATE_MODELS) {
+    if (signal?.aborted) {
+      throw createAbortError();
+    }
+
     try {
       const chat = ai.chats.create({
         model,
@@ -52,10 +66,22 @@ export async function chatWithTutor(messages) {
 
       const response = await chat.sendMessage({
         message: lastMessage.parts,
+        // Per-request config must repeat systemInstruction; otherwise it
+        // replaces the chat-level config when abortSignal is supplied.
+        config: {
+          systemInstruction: TUTOR_SYSTEM_PROMPT,
+          ...(signal ? { abortSignal: signal } : {}),
+        },
       });
 
       return response.text;
     } catch (err) {
+      // Do not fall back to another model after the caller has cancelled.
+      // A fallback here would keep the backend busy after the UI stopped
+      // waiting and could append a late answer to the conversation.
+      if (signal?.aborted || err?.name === 'AbortError' || err?.code === 'ABORT_ERR') {
+        throw err;
+      }
       console.warn(`[chatWithTutor] Falha com modelo ${model}:`, err.message);
       lastError = err;
     }
