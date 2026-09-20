@@ -21,9 +21,9 @@
   --color-amber-600: #d97706;
 
   /* Tons de cinza modernos */
-  --color-surface: #f8fafc;
-  --color-surface-card: #ffffff;
-  --color-border: #e2e8f0;
+  --color-surface: #f3f5f1;
+  --color-surface-card: #fbfaf7;
+  --color-border: #d7ded8;
 
   /* Tipografia */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
@@ -56,25 +56,146 @@
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background-color: #f1f5f9;
-  color: #1e293b;
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  min-width: 320px;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 :root {
   color-scheme: light;
+  --app-bg: #eef1ee;
+  --app-surface: #fbfaf7;
+  --app-surface-muted: #f3f5f1;
+  --app-border: #d7ded8;
+  --app-text: #0f172a;
+  --app-text-muted: #475569;
+  --app-text-subtle: #64748b;
+  --app-primary: #4f46e5;
+  --app-primary-hover: #4338ca;
+  --app-ring: #818cf8;
+  --app-warning-bg: #fffbeb;
+  --app-warning-text: #92400e;
 }
 
 :root.theme-dark {
   color-scheme: dark;
+  --app-bg: #0f172a;
+  --app-surface: #1e293b;
+  --app-surface-muted: #172033;
+  --app-border: #334155;
+  --app-text: #f8fafc;
+  --app-text-muted: #cbd5e1;
+  --app-text-subtle: #94a3b8;
+  --app-primary: #818cf8;
+  --app-primary-hover: #a5b4fc;
+  --app-ring: #a5b4fc;
+  --app-warning-bg: #422006;
+  --app-warning-text: #fcd34d;
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body,
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 3px solid var(--app-ring);
+  outline-offset: 2px;
+}
+
+:where(h1, h2, h3, h4, h5, h6) {
+  text-wrap: balance;
+  scroll-margin-top: 1.5rem;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  border-radius: 0.75rem;
+  background: var(--app-text);
+  color: var(--app-surface);
+  padding: 0.65rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: transform 150ms ease-out;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+.app-surface {
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-border);
+  color: var(--app-text);
+}
+
+.app-surface-muted {
+  background-color: var(--app-surface-muted);
+  border: 1px solid var(--app-border);
+}
+
+.app-text-muted {
+  color: var(--app-text-muted);
+}
+
+.app-text-subtle {
+  color: var(--app-text-subtle);
+}
+
+.app-text-accent {
+  color: var(--app-primary);
+}
+
+.app-card {
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+}
+
+.app-card-interactive {
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out, transform 150ms ease-out;
+}
+
+.app-card-interactive:hover {
+  border-color: color-mix(in srgb, var(--app-primary) 45%, var(--app-border));
+  box-shadow: var(--shadow-card-lg);
+  transform: translateY(-1px);
+}
+
+/* Componentes legados que ainda usam utilitários Tailwind recebem os tokens
+   da superfície para que o modo claro não volte ao branco puro. */
+.bg-white { background-color: var(--app-surface) !important; }
+.bg-slate-50 { background-color: var(--app-surface-muted) !important; }
+.border-slate-200 { border-color: var(--app-border) !important; }
 
 /* O modo claro continua sendo o padrão. Estas substituições preservam os
    componentes existentes e deixam o tema escuro consistente entre páginas. */
 .theme-dark body {
-  background-color: #0f172a;
-  color: #e2e8f0;
+  background-color: var(--app-bg);
+  color: var(--app-text);
 }
 .theme-dark .bg-slate-100 { background-color: #0f172a !important; }
 .theme-dark .bg-slate-50 { background-color: #172033 !important; }
@@ -126,8 +247,12 @@ body {
 .theme-dark select,
 .theme-dark select option { background-color: #1e293b; color: #f8fafc; }
 
+.theme-dark .app-surface { background-color: var(--app-surface); border-color: var(--app-border); color: var(--app-text); }
+.theme-dark .app-surface-muted { background-color: var(--app-surface-muted); border-color: var(--app-border); }
+
 #root {
   min-height: 100svh;
+  overflow-x: hidden;
 }
 
 /* Scrollbar customizada */
@@ -157,15 +282,16 @@ body {
 /* Prose para respostas da IA */
 .prose-ai {
   line-height: 1.7;
-  color: #334155;
+  color: var(--app-text-muted);
+  overflow-wrap: anywhere;
 }
 .prose-ai strong {
-  color: #1e293b;
+  color: var(--app-text);
   font-weight: 600;
 }
 .prose-ai h1, .prose-ai h2, .prose-ai h3,
 .prose-ai h4, .prose-ai h5, .prose-ai h6 {
-  color: #1e293b;
+  color: var(--app-text);
   font-weight: 700;
   line-height: 1.35;
   margin: 0.25rem 0 0.5rem;
@@ -188,7 +314,8 @@ body {
   margin-bottom: 0.25rem;
 }
 .prose-ai code {
-  background: #e2e8f0;
+  background: var(--app-surface-muted);
+  color: var(--app-text);
   border-radius: 0.25rem;
   padding: 0.1rem 0.3rem;
   font-size: 0.875em;
@@ -207,23 +334,72 @@ body {
   color: inherit;
 }
 .prose-ai blockquote {
-  border-left: 3px solid #cbd5e1;
-  color: #475569;
+  border-left: 3px solid var(--app-border);
+  color: var(--app-text-muted);
   padding-left: 0.75rem;
   margin: 0.5rem 0 0.75rem;
   white-space: pre-wrap;
 }
 .prose-ai hr {
   border: 0;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--app-border);
   margin: 0.75rem 0;
 }
 
+.tutor-table-wrapper {
+  max-width: 100%;
+  margin: 0.75rem 0 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--app-border);
+  border-radius: 0.75rem;
+}
+.tutor-table-wrapper:focus-visible {
+  outline: 3px solid var(--app-ring);
+  outline-offset: 2px;
+}
+.tutor-markdown table {
+  width: 100%;
+  min-width: 32rem;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.tutor-markdown th,
+.tutor-markdown td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--app-border);
+  text-align: left;
+  vertical-align: top;
+}
+.tutor-markdown th {
+  background: var(--app-surface-muted);
+  color: var(--app-text);
+  font-weight: 700;
+}
+.tutor-markdown tr:last-child td {
+  border-bottom: 0;
+}
+.tutor-markdown-link {
+  color: var(--app-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.tutor-markdown-link:hover {
+  color: var(--app-primary-hover);
+}
+.tutor-markdown-image {
+  color: var(--app-text-muted);
+  font-style: italic;
+}
+.tutor-markdown-pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 .theme-dark .prose-ai,
-.theme-dark .prose-ai blockquote { color: #cbd5e1; }
+.theme-dark .prose-ai blockquote { color: var(--app-text-muted); }
 .theme-dark .prose-ai strong,
 .theme-dark .prose-ai h1, .theme-dark .prose-ai h2, .theme-dark .prose-ai h3,
-.theme-dark .prose-ai h4, .theme-dark .prose-ai h5, .theme-dark .prose-ai h6 { color: #f8fafc; }
+.theme-dark .prose-ai h4, .theme-dark .prose-ai h5, .theme-dark .prose-ai h6 { color: var(--app-text); }
 .theme-dark .prose-ai code { background: #334155; color: #f8fafc; }
 .theme-dark .prose-ai blockquote { border-color: #64748b; }
 .theme-dark .prose-ai hr { border-color: #475569; }
@@ -234,5 +410,13 @@ body {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  .app-card-interactive:hover {
+    transform: none;
   }
 }

@@ -6,7 +6,8 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
-import { GraduationCap, User, Mail, Lock, AlertCircle } from 'lucide-react';
+import { GraduationCap, User, Mail, Lock } from 'lucide-react';
+import FeedbackMessage from './components/ui/FeedbackMessage.jsx';
 
 export default function Cadastro() {
   const navigate = useNavigate();
@@ -79,7 +80,7 @@ export default function Cadastro() {
       </div>
 
       {/* Painel direito — formulário */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-white">
+      <div className="app-surface flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
           {/* Logo mobile */}
           <div className="flex items-center gap-2 mb-8 lg:hidden">
@@ -129,6 +130,7 @@ export default function Cadastro() {
                   name="email"
                   type="email"
                   autoComplete="email"
+                  inputMode="email"
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -162,12 +164,7 @@ export default function Cadastro() {
             </div>
 
             {/* Erro */}
-            {error && (
-              <div role="alert" aria-live="polite" className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
-                <AlertCircle size={16} className="flex-shrink-0 mt-0.5" aria-hidden="true" />
-                <p>{error}</p>
-              </div>
-            )}
+            {error && <FeedbackMessage tone="danger">{error}</FeedbackMessage>}
 
             {/* Submit */}
             <button

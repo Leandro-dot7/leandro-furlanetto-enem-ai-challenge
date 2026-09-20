@@ -6,6 +6,7 @@ import {
   getTutorConversation,
   validateTutorMessage,
 } from './tutorConversationStore.js';
+import * as tutorStore from './tutorConversationStore.js';
 
 const authContext = { id: 'user-1', accessToken: 'access-token' };
 const conversationId = 'conversation-1';
@@ -89,4 +90,31 @@ test('mantém a validação de tamanho das mensagens do Tutor', () => {
   assert.equal(validateTutorMessage('  dúvida válida  '), 'dúvida válida');
   assert.equal(validateTutorMessage('x'.repeat(4_001)), null);
   assert.equal(validateTutorMessage('   '), null);
+});
+
+test('clears only the authenticated user history', async () => {
+  setupEnvironment();
+  assert.equal(typeof tutorStore.clearTutorHistory, 'function');
+
+  const requests = [];
+  const previousFetch = global.fetch;
+  global.fetch = async (url, options = {}) => {
+    requests.push({ url, options });
+    return jsonResponse(null, 204);
+  };
+
+  try {
+    await tutorStore.clearTutorHistory(authContext);
+    assert.equal(requests.length, 1);
+    assert.match(requests[0].url, /tutor_conversas\?user_id=eq\.user-1$/);
+    assert.equal(requests[0].options.method, 'DELETE');
+    assert.equal(requests[0].options.headers.Prefer, 'return=minimal');
+  } finally {
+    global.fetch = previousFetch;
+  }
+});
+
+test('rejects clearing history without authentication context', async () => {
+  assert.equal(typeof tutorStore.clearTutorHistory, 'function');
+  await assert.rejects(() => tutorStore.clearTutorHistory({ id: 'user-1' }), /autentica\u00e7\u00e3o/);
 });

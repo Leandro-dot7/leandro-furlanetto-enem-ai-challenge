@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from './context/AuthContext';
 import { supabase } from './lib/supabase';
 import { User, Target, GraduationCap, Mail, Save, CheckCircle, Loader2 } from 'lucide-react';
+import FeedbackMessage from './components/ui/FeedbackMessage.jsx';
 
 const CURSOS = [
   'Medicina', 'Engenharia', 'Direito', 'Ciência da Computação',
@@ -96,7 +97,7 @@ export default function Perfil() {
       </div>
 
       {/* Avatar */}
-      <div className="flex items-center gap-4 bg-white rounded-2xl border border-slate-200 p-5 mb-4">
+      <div className="app-surface app-card flex items-center gap-4 rounded-2xl p-5 mb-4">
         <div
           className="flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-600 text-white text-2xl font-bold flex-shrink-0"
           aria-hidden="true"
@@ -113,7 +114,7 @@ export default function Perfil() {
       </div>
 
       {/* Formulário */}
-      <form onSubmit={handleSave} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-5">
+      <form onSubmit={handleSave} className="app-surface app-card rounded-2xl p-5 space-y-5">
         {/* Nome */}
         <div>
           <label htmlFor="pf-name" className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -125,6 +126,7 @@ export default function Perfil() {
               id="pf-name"
               name="name"
               type="text"
+              autoComplete="name"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               placeholder="Seu nome"
@@ -166,6 +168,7 @@ export default function Perfil() {
               id="pf-meta"
               name="metaPontuacao"
               type="number"
+              inputMode="numeric"
               min={300}
               max={1000}
               value={form.metaPontuacao}
@@ -201,11 +204,7 @@ export default function Perfil() {
           )}
         </button>
 
-        {saved && (
-          <p role="status" className="text-center text-xs text-emerald-600 font-medium">
-            ✅ Perfil atualizado com sucesso!
-          </p>
-        )}
+        {saved && <FeedbackMessage tone="success">Perfil atualizado com sucesso!</FeedbackMessage>}
       </form>
     </div>
   );

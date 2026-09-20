@@ -57,7 +57,7 @@ Para cada alteração, registrar: **evidência** (arquivo, rota ou comportamento
 
 ### Relatório obrigatório da rodada
 
-Ao concluir qualquer análise, correção ou reteste, registrar a rodada em um arquivo Markdown dentro de `relatorios/`. Usar um nome datado e descritivo (por exemplo, `relatorios/minerva-rodada-AAAA-MM-DD.md`), incluindo escopo, arquivos alterados, evidências, validações, limitações e próximos passos. Consultar os relatórios anteriores antes de reabrir um achado.
+Ao concluir qualquer análise, correção ou reteste, registrar a rodada em um arquivo Markdown dentro de `relatorios/`. Usar o padrão `relatorios/minerva-rodada-AAAA-MM-DD-HH-mm.md` no fuso `America/Sao_Paulo`, incluindo escopo, arquivos alterados, evidências, validações, limitações e próximos passos. Consultar os relatórios anteriores antes de reabrir um achado.
 
 ### Padrões aprendidos no Minerva ENEM
 

@@ -5,7 +5,6 @@ import { ThemeProvider } from './context/ThemeContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Layout from './components/Layout.jsx';
 import ThemeToggle from './components/ThemeToggle.jsx';
-import './App.css';
 
 import Login from './Login.jsx';
 import Cadastro from './Cadastro.jsx';

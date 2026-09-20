@@ -15,6 +15,9 @@ dist-ssr/
 build/
 *.tsbuildinfo
 
+# Artefatos locais de planejamento
+docs/superpowers/
+
 # Logs
 logs/
 *.log

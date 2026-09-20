@@ -105,6 +105,18 @@ export async function getLatestTutorConversation(authContext) {
   return conversation;
 }
 
+export async function clearTutorHistory(authContext) {
+  const { userId, accessToken } = getAuthContext(authContext);
+  await supabaseRequest(
+    `tutor_conversas?user_id=eq.${encodeURIComponent(userId)}`,
+    accessToken,
+    {
+      method: 'DELETE',
+      prefer: 'return=minimal',
+    },
+  );
+}
+
 export async function appendTutorTurn(authContext, conversation, userText, modelText) {
   const { userId, accessToken } = getAuthContext(authContext);
   await supabaseRequest(

@@ -92,7 +92,7 @@ Todo achado deve separar:
 
 ### Relatório obrigatório da rodada
 
-Toda rodada do Argos deve terminar com um relatório Markdown em `relatorios/`, com nome datado e descritivo (por exemplo, `relatorios/argos-rodada-AAAA-MM-DD.md`). O relatório deve registrar escopo autorizado, ambiente, testes executados, evidências, classificação do achado, limitações e retestes. Se não houver vulnerabilidades novas, registrar também os controles verificados e a evidência dessa conclusão.
+Toda rodada do Argos deve terminar com um relatório Markdown em `relatorios/`, com nome `relatorios/argos-rodada-AAAA-MM-DD-HH-mm.md` no fuso `America/Sao_Paulo`. O relatório deve registrar escopo autorizado, ambiente, testes executados, evidências, classificação do achado, limitações e retestes. Se não houver vulnerabilidades novas, registrar também os controles verificados e a evidência dessa conclusão.
 
 Não tratar CORS como autenticação: clientes não navegador podem chamar a API diretamente. Não reportar uma chave publishable/anon do Supabase como segredo por si só; verificar service-role keys, RLS e a exposição efetiva.
 
@@ -111,4 +111,4 @@ Riscos residuais para reteste em homologação:
 - Testar expiração, renovação e revogação de token; não apenas a presença de Authorization.
 - Executar testes de custo/abuso contra IA somente em ambiente autorizado.
 
-Os registros estão em `relatorios/argos-rodada-2026-09-18.md` e `relatorios/correcoes-2026-09-18.md`. Em novas rodadas, retestar esses controles primeiro e não reportá-los novamente como abertos sem evidência de regressão.
+Os registros estão em `relatorios/argos-rodada-2026-09-18-09-06.md` e `relatorios/correcoes-2026-09-18-09-15.md`. Em novas rodadas, retestar esses controles primeiro e não reportá-los novamente como abertos sem evidência de regressão.

@@ -7,18 +7,20 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { supabase } from './lib/supabase';
+import PageHeader from './components/ui/PageHeader.jsx';
+import FeedbackMessage from './components/ui/FeedbackMessage.jsx';
 import {
   BarChart2, BookOpen, FileText, TrendingUp, Calendar,
   CheckCircle, Loader2
 } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Legend,
+  ResponsiveContainer,
 } from 'recharts';
 
 function EmptyState({ icon: Icon, title, description, linkTo, linkLabel }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
+    <div className="app-surface app-card rounded-2xl p-8 text-center">
       <div className="flex items-center justify-center w-12 h-12 bg-slate-100 rounded-xl mx-auto mb-3">
         <Icon size={22} className="text-slate-400" aria-hidden="true" />
       </div>
@@ -38,7 +40,7 @@ function EmptyState({ icon: Icon, title, description, linkTo, linkLabel }) {
 
 function formatDate(iso) {
   if (!iso) return '';
-  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).format(new Date(iso));
 }
 
 export default function Historico() {
@@ -96,15 +98,12 @@ export default function Historico() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-slide-up">
-      <div>
-        <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-          <BarChart2 size={22} className="text-emerald-600" aria-hidden="true" />
-          Histórico de Desempenho
-        </h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Acompanhe sua evolução nos simulados e redações
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Visão geral"
+        title="Histórico de desempenho"
+        description="Acompanhe sua evolução nos simulados e redações."
+        actions={<BarChart2 size={22} className="text-emerald-600" aria-hidden="true" />}
+      />
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
@@ -112,11 +111,7 @@ export default function Historico() {
         </div>
       ) : (
         <>
-          {dataError && (
-            <div role="alert" className="p-3 mb-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
-              {dataError}
-            </div>
-          )}
+          {dataError && <FeedbackMessage tone="warning" title="Histórico indisponível">{dataError}</FeedbackMessage>}
           {/* Cards resumo */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
@@ -125,7 +120,7 @@ export default function Historico() {
               { label: 'Média geral', value: `${mediaGeral}%`, icon: TrendingUp, color: 'emerald' },
               { label: 'Último simulado', value: simulados[0] ? formatDate(simulados[0].criado_em) : '—', icon: Calendar, color: 'violet' },
             ].map(({ label, value, icon: Icon, color }) => (
-              <div key={label} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+              <div key={label} className="app-surface app-card flex items-center gap-3 rounded-2xl p-4">
                 <div className={`flex items-center justify-center w-10 h-10 rounded-xl bg-${color}-100 flex-shrink-0`}>
                   <Icon size={18} className={`text-${color}-600`} aria-hidden="true" />
                 </div>
@@ -139,7 +134,7 @@ export default function Historico() {
 
           {/* Gráfico de evolução */}
           {simulados.length >= 2 && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-6">
+            <div className="app-surface app-card rounded-2xl p-6">
               <h2 className="font-semibold text-slate-900 mb-4 text-sm">
                 📈 Evolução dos últimos {Math.min(simulados.length, 10)} simulados
               </h2>
@@ -181,7 +176,7 @@ export default function Historico() {
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-[background-color,color,box-shadow] focus:outline-none focus:ring-2 focus:ring-indigo-400
                     ${aba === id
                       ? 'bg-indigo-600 text-white'
-                      : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'
+                      : 'app-surface border border-slate-200 text-slate-600 hover:border-slate-300'
                     }`}
                 >
                   <Icon size={15} aria-hidden="true" />
@@ -206,7 +201,7 @@ export default function Historico() {
                     {simulados.map((s) => {
                       const pct = Math.round((s.acertos / s.total_questoes) * 100);
                       return (
-                        <div key={s.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-4">
+                        <div key={s.id} className="app-surface app-card flex items-center gap-4 rounded-2xl p-4">
                           <div className={`flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-xl font-bold text-sm
                             ${pct >= 70 ? 'bg-emerald-100 text-emerald-700' : pct >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}
                           >
@@ -243,7 +238,7 @@ export default function Historico() {
                 ) : (
                   <div className="space-y-2">
                     {redacoes.map((r) => (
-                      <div key={r.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-4">
+                      <div key={r.id} className="app-surface app-card flex items-center gap-4 rounded-2xl p-4">
                         <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 bg-amber-100 rounded-xl font-bold text-sm text-amber-700">
                           {r.nota_total}
                         </div>

@@ -31,7 +31,7 @@ O Tutor não consulta a API externa durante cada pergunta: depois da ingestão, 
 - Lint do frontend: aprovado, com avisos preexistentes.
 - Auditoria de dependências backend/frontend: 0 vulnerabilidades de severidade alta ou maior.
 - Marcadores de HTML executável, `dangerouslySetInnerHTML` e chave de serviço Supabase: não encontrados no corpus/alterações do RAG.
-- Argos: relatório em [`relatorios/argos-rag-2026-09-19.md`](./argos-rag-2026-09-19.md).
+- Argos: relatório em [`relatorios/argos-rag-2026-09-19-18-12.md`](./argos-rag-2026-09-19-18-12.md).
 
 ## Pendências conscientes
 

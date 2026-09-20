@@ -135,6 +135,10 @@ CREATE POLICY "Usuários podem atualizar suas próprias conversas"
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
 
+CREATE POLICY "Usuarios podem excluir suas proprias conversas"
+    ON public.tutor_conversas FOR DELETE
+    USING (auth.uid() = user_id);
+
 CREATE POLICY "Usuários podem visualizar suas próprias mensagens"
     ON public.tutor_mensagens FOR SELECT
     USING (auth.uid() = user_id);
@@ -151,6 +155,10 @@ CREATE POLICY "Usuários podem criar mensagens em suas conversas"
         )
     );
 
+CREATE POLICY "Usuarios podem excluir suas proprias mensagens"
+    ON public.tutor_mensagens FOR DELETE
+    USING (auth.uid() = user_id);
+
 CREATE INDEX IF NOT EXISTS idx_tutor_conversas_user_updated
     ON public.tutor_conversas(user_id, atualizado_em DESC);
 CREATE INDEX IF NOT EXISTS idx_tutor_mensagens_conversation_created
@@ -163,5 +171,5 @@ GRANT USAGE ON SCHEMA public TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON public.perfis TO authenticated;
 GRANT SELECT, INSERT ON public.simulados TO authenticated;
 GRANT SELECT, INSERT ON public.redacoes TO authenticated;
-GRANT SELECT, INSERT, UPDATE ON public.tutor_conversas TO authenticated;
-GRANT SELECT, INSERT ON public.tutor_mensagens TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.tutor_conversas TO authenticated;
+GRANT SELECT, INSERT, DELETE ON public.tutor_mensagens TO authenticated;

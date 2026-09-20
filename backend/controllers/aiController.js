@@ -2,6 +2,7 @@ import * as gemini from '../services/geminiService.js';
 import { getSimuladoRagContext, getTutorRagContext } from '../services/enemRagService.js';
 import {
   appendTutorTurn,
+  clearTutorHistory,
   getTutorConversation,
   getLatestTutorConversation,
   validateTutorMessage,
@@ -33,6 +34,20 @@ export async function getLatestTutor(req, res) {
 }
 
 /** POST /api/ai/tutor — a conversa é mantida no servidor e persistida por usuário. */
+export async function clearTutorHistoryController(req, res) {
+  try {
+    await clearTutorHistory(req.authUser);
+    return res.status(204).send();
+  } catch (err) {
+    console.error('[clearTutorHistory] Erro:', err.message);
+    return res.status(isTutorStorageError(err) ? 503 : 500).json({
+      error: isTutorStorageError(err)
+        ? 'Persistência do Tutor não configurada. Execute o supabase_schema.sql no projeto Supabase.'
+        : 'Não foi possível limpar o histórico do tutor.',
+    });
+  }
+}
+
 export async function tutorChat(req, res) {
   const { message, conversationId } = req.body;
   const safeMessage = validateTutorMessage(message);

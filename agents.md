@@ -83,12 +83,12 @@ Toda rodada conduzida por qualquer um dos agentes deve, obrigatoriamente, ser do
 
 ### 3.1. Convenção de Nomes
 ```
-relatorios/<agente>-<topico-em-kebab-case>-AAAA-MM-DD.md
+relatorios/<agente>-<topico-em-kebab-case>-AAAA-MM-DD-HH-mm.md
 ```
 *Exemplos:*
-- `relatorios/argos-rag-2026-09-19.md`
-- `relatorios/morpheus-tutor-2026-09-19.md`
-- `relatorios/minerva-tutor-markdown-2026-09-19.md`
+- `relatorios/argos-rag-2026-09-19-18-12.md`
+- `relatorios/morpheus-tutor-2026-09-19-12-11.md`
+- `relatorios/minerva-tutor-markdown-2026-09-19-15-29.md`
 
 ### 3.2. Estrutura Padrão Obrigatória
 Cada relatório deve conter impreterivelmente as seguintes seções:

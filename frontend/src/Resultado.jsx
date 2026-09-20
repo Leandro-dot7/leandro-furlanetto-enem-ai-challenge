@@ -5,7 +5,8 @@
  */
 import React from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { Trophy, Target, RotateCcw, BarChart2, CheckCircle, XCircle, ChevronDown } from 'lucide-react';
+import { Trophy, RotateCcw, BarChart2, CheckCircle, XCircle, ChevronDown } from 'lucide-react';
+import FeedbackMessage from './components/ui/FeedbackMessage.jsx';
 
 // Calcula a pontuação TRI estimada (simplificado)
 function calcPontuacao(acertos, total) {
@@ -102,10 +103,12 @@ export default function Resultado() {
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-slide-up">
       {/* Card de resultado */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
+      <div className="app-surface app-card rounded-2xl p-8 text-center">
         {persistError && (
-          <div role="alert" className="mb-5 p-3 text-left bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
-            Resultado calculado, mas não foi possível salvar no histórico: {persistError}
+          <div className="mb-5 text-left">
+            <FeedbackMessage tone="warning" title="Histórico indisponível">
+              Resultado calculado, mas não foi possível salvar no histórico: {persistError}
+            </FeedbackMessage>
           </div>
         )}
         <div className={`flex items-center justify-center w-16 h-16 rounded-2xl bg-${desempenho.color}-100 mx-auto mb-4`}>

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { tutorChat, getLatestTutor, gerarSimulado, corrigirRedacao, gerarTemaRedacao } from '../controllers/aiController.js';
+import { tutorChat, getLatestTutor, clearTutorHistoryController, gerarSimulado, corrigirRedacao, gerarTemaRedacao } from '../controllers/aiController.js';
 import { aiRateLimit, requireSupabaseUser } from '../middleware/aiSecurity.js';
 
 const router = Router();
@@ -12,6 +12,9 @@ router.use(requireSupabaseUser, aiRateLimit);
  * Recupera a última conversa persistida do estudante autenticado.
  */
 router.get('/tutor/latest', getLatestTutor);
+
+/** DELETE /api/ai/tutor/history */
+router.delete('/tutor/history', clearTutorHistoryController);
 
 /**
  * POST /api/ai/tutor

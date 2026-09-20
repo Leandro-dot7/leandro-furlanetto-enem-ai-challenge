@@ -104,7 +104,7 @@ Aplicável sempre que o produto incluir um chat, assistente de IA, ou canal de m
 6. **Não force o fracasso**: se a persona conseguiria completar a tarefa com facilidade, reporte isso também — feedback só negativo não é confiável.
 7. **Sinalize (não explore) achados de segurança** encontrados incidentalmente, e passe adiante para o Argos.
 
-8. **Registre a rodada:** ao finalizar qualquer teste, simulação ou reteste, salve um relatório Markdown em `relatorios/`, com nome datado e descritivo (por exemplo, `relatorios/morpheus-rodada-AAAA-MM-DD.md`). Inclua personas, fluxos, observações, inferências, severidade, limitações de validação e próximos passos.
+8. **Registre a rodada:** ao finalizar qualquer teste, simulação ou reteste, salve um relatório Markdown em `relatorios/`, com nome `relatorios/morpheus-rodada-AAAA-MM-DD-HH-mm.md` no fuso `America/Sao_Paulo`. Inclua personas, fluxos, observações, inferências, severidade, limitações de validação e próximos passos.
 
 ---
 
@@ -159,4 +159,4 @@ Após uma correção de segurança, desempenho ou arquitetura feita por outro ag
 - Pontos pendentes de teste dinâmico: espera/falha na geração de simulado, e-mail de recuperação e continuidade do Tutor após expiração da conversa.
 - Reteste de 19/09/2026: o cancelamento do Tutor agora propaga o sinal até o backend e evita persistência tardia; permanece a limitação do SDK Gemini de não garantir cancelamento da inferência remota.
 
-Consultar `relatorios/morpheus-rodada-2026-09-18.md` antes de repetir a rodada, atualizando status dos achados em vez de reproduzir conclusões antigas.
+Consultar `relatorios/morpheus-rodada-2026-09-18-09-15.md` antes de repetir a rodada, atualizando status dos achados em vez de reproduzir conclusões antigas.

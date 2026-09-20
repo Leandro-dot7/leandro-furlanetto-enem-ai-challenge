@@ -7,6 +7,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { supabase } from './lib/supabase';
+import PageHeader from './components/ui/PageHeader.jsx';
+import FeedbackMessage from './components/ui/FeedbackMessage.jsx';
 import {
   BookOpen,
   BrainCircuit,
@@ -24,7 +26,7 @@ function FeatureCard({ to, icon: Icon, title, description, color }) {
   return (
     <Link
       to={to}
-      className={`group flex flex-col p-5 bg-white rounded-2xl border border-slate-200 hover:border-${color}-300 hover:shadow-md transition-[border-color,box-shadow] duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400`}
+      className={`app-surface app-card-interactive group flex flex-col p-5 rounded-2xl hover:border-${color}-300 focus:outline-none focus:ring-2 focus:ring-indigo-400`}
       aria-label={`Ir para ${title}`}
     >
       <div className={`flex items-center justify-center w-11 h-11 rounded-xl bg-${color}-100 mb-4`}>
@@ -45,7 +47,7 @@ function FeatureCard({ to, icon: Icon, title, description, color }) {
 // Card de estatística
 function StatCard({ label, value, icon: Icon, color, suffix = '' }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-4">
+    <div className="app-surface app-card flex items-center gap-4 p-5">
       <div className={`flex items-center justify-center w-12 h-12 rounded-xl bg-${color}-100 flex-shrink-0`}>
         <Icon size={22} className={`text-${color}-600`} aria-hidden="true" />
       </div>
@@ -113,30 +115,22 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-slide-up">
-      {/* Boas-vindas */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Olá, {userName}! 👋
-        </h1>
-        <p className="text-slate-500 mt-1">
-          Bem-vindo ao seu painel de estudos para o ENEM. Por onde vai começar hoje?
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Seu estúdio de preparação"
+        title={`Olá, ${userName}! 👋`}
+        description="Acompanhe seu progresso e escolha a próxima atividade para estudar para o ENEM."
+      />
 
       {/* Estatísticas */}
       <section aria-label="Suas estatísticas de estudo">
-        {dataError && (
-          <div role="alert" className="p-3 mb-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
-            {dataError}
-          </div>
-        )}
+        {dataError && <FeedbackMessage tone="warning" title="Progresso indisponível">{dataError}</FeedbackMessage>}
         <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
           Seu progresso
         </h2>
         {loading ? (
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-2xl border border-slate-200 p-5 animate-pulse h-24" />
+              <div key={i} className="app-surface app-card h-24 animate-pulse p-5" />
             ))}
           </div>
         ) : (

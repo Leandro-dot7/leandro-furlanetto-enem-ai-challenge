@@ -4,7 +4,7 @@
  * Responsivo: sidebar colapsável em mobile.
  * Acessibilidade: landmarks ARIA, foco gerenciado.
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -55,6 +55,17 @@ export default function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    if (!mobileOpen) return undefined;
+
+    function handleEscape(event) {
+      if (event.key === 'Escape') setMobileOpen(false);
+    }
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [mobileOpen]);
 
   async function handleLogout() {
     try {
@@ -123,7 +134,9 @@ export default function Layout({ children }) {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-100">
+    <>
+      <a className="skip-link" href="#main-content">Ir para o conteúdo principal</a>
+      <div className="flex h-screen overflow-hidden bg-slate-100">
       {/* Sidebar Desktop */}
       <div className="hidden lg:flex lg:flex-col lg:w-64 lg:flex-shrink-0 shadow-xl">
         {sidebar}
@@ -131,10 +144,11 @@ export default function Layout({ children }) {
 
       {/* Overlay Mobile */}
       {mobileOpen && (
-        <div
+        <button
+          type="button"
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={() => setMobileOpen(false)}
-          aria-hidden="true"
+          aria-label="Fechar menu de navegação"
         />
       )}
 
@@ -150,7 +164,7 @@ export default function Layout({ children }) {
         {sidebar}
         <button
           onClick={() => setMobileOpen(false)}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white"
+          className="absolute right-4 top-4 rounded-lg p-1 text-slate-400 outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300"
           aria-label="Fechar menu"
         >
           <X size={20} />
@@ -160,7 +174,7 @@ export default function Layout({ children }) {
       {/* Área principal */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         {/* Header mobile */}
-        <header className="lg:hidden flex items-center gap-3 px-4 py-3 bg-white border-b border-slate-200 shadow-sm">
+        <header className="app-surface lg:hidden flex items-center gap-3 px-4 py-3 shadow-sm">
           <button
             onClick={() => setMobileOpen(true)}
             className="text-slate-600 hover:text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-lg p-1"
@@ -183,6 +197,7 @@ export default function Layout({ children }) {
           {children}
         </main>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -11,7 +11,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { supabase } from './lib/supabase';
 import api from './lib/api';
-import { BookOpen, Loader2, ChevronRight, CheckCircle, XCircle, Sparkles } from 'lucide-react';
+import { Loader2, ChevronRight, CheckCircle, XCircle, Sparkles } from 'lucide-react';
+import FeedbackMessage from './components/ui/FeedbackMessage.jsx';
 
 const MATERIAS = [
   { label: 'Linguagens e Códigos', value: 'Linguagens e Códigos' },
@@ -29,7 +30,7 @@ function ConfigScreen({ onStart }) {
 
   return (
     <div className="max-w-lg mx-auto animate-slide-up">
-      <div className="bg-white rounded-2xl border border-slate-200 p-8">
+      <div className="app-surface app-card rounded-2xl p-8">
         <div className="flex items-center gap-3 mb-6">
           <div className="flex items-center justify-center w-11 h-11 bg-indigo-100 rounded-xl">
             <Sparkles size={22} className="text-indigo-600" aria-hidden="true" />
@@ -104,7 +105,7 @@ function ConfigScreen({ onStart }) {
 function LoadingScreen({ materia }) {
   return (
     <div className="max-w-lg mx-auto">
-      <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+      <div className="app-surface app-card rounded-2xl p-12 text-center" role="status" aria-live="polite" aria-busy="true">
         <div className="flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-2xl mx-auto mb-4">
           <Loader2 size={28} className="text-indigo-600 animate-spin" />
         </div>
@@ -139,7 +140,7 @@ function QuestaoScreen({ questao, totalQuestoes, onResponder }) {
 
   return (
     <div className="max-w-2xl mx-auto animate-slide-up">
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 lg:p-8">
+      <div className="app-surface app-card rounded-2xl p-6 lg:p-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <span className="text-sm font-medium text-slate-500">
@@ -331,12 +332,7 @@ export default function Simulado() {
 
   return (
     <>
-      {erro && (
-        <div role="alert" className="max-w-lg mx-auto mb-4 flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
-          <XCircle size={16} className="flex-shrink-0 mt-0.5" />
-          <p>{erro}</p>
-        </div>
-      )}
+      {erro && <div className="max-w-lg mx-auto mb-4"><FeedbackMessage tone="danger" title="Não foi possível gerar o simulado">{erro}</FeedbackMessage></div>}
       <ConfigScreen onStart={handleStart} />
     </>
   );

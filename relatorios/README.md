@@ -1,14 +1,16 @@
-# Relatórios dos agentes
+# Relatorios dos agentes
 
-Este diretório é o registro permanente das rodadas da Minerva, do Argos e do Morpheus.
+Este diretorio e o registro permanente das rodadas da Minerva, do Argos e do Morpheus.
 
-Toda análise, correção, auditoria ou reteste deve deixar um arquivo Markdown aqui, com:
+Toda analise, correcao, auditoria ou reteste deve deixar um arquivo Markdown aqui, com:
 
-- agente e data da rodada;
+- agente, data e hora da rodada;
 - escopo e ambiente;
-- evidências e arquivos/fluxos avaliados;
-- alterações realizadas ou recomendadas;
-- validações executadas e limitações;
-- riscos residuais e próximos passos.
+- evidencias e arquivos/fluxos avaliados;
+- alteracoes realizadas ou recomendadas;
+- validacoes executadas e limitacoes;
+- riscos residuais e proximos passos.
 
-Use nomes datados e descritivos, como `argos-rodada-AAAA-MM-DD.md`, `morpheus-tutor-AAAA-MM-DD.md` ou `minerva-correcoes-AAAA-MM-DD.md`. Antes de iniciar uma nova rodada, consulte os relatórios anteriores para evitar repetir achados já mitigados e para registrar regressões.
+Use o padrao `relatorios/<agente>-<topico>-AAAA-MM-DD-HH-mm.md`, no fuso `America/Sao_Paulo`, como `argos-tutor-2026-09-20-17-30.md`. A hora representa o inicio da rodada.
+
+Antes de iniciar uma nova rodada, consulte os relatorios anteriores para evitar repetir achados ja mitigados e para registrar regressoes.

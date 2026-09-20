@@ -65,7 +65,7 @@ function ResultadoCorrecao({ resultado, onNova }) {
   return (
     <div className="space-y-5 animate-slide-up">
       {/* Nota geral */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
+      <div className="app-surface app-card rounded-2xl border border-slate-200 p-6">
         {resultado.persistError && (
           <div role="alert" className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
             Redação corrigida, mas não foi possível salvar no histórico: {resultado.persistError}
@@ -104,7 +104,7 @@ function ResultadoCorrecao({ resultado, onNova }) {
             const comp = resultado.competencias?.[key];
             if (!comp) return null;
             return (
-              <div key={key} className="bg-white rounded-2xl border border-slate-200 p-5">
+              <div key={key} className="app-surface app-card rounded-2xl border border-slate-200 p-5">
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <p className="font-semibold text-slate-900 text-sm">{info.titulo}</p>
@@ -220,7 +220,7 @@ export default function Redacao() {
 
       <form onSubmit={handleEnviar} className="space-y-4">
         {/* Tema */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="app-surface app-card rounded-2xl border border-slate-200 p-5">
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <label htmlFor="redacao-tema" className="text-sm font-semibold text-slate-700">Proposta Temática</label>
             <div className="flex items-center gap-2">
