@@ -7,6 +7,10 @@ import {
   validateTutorMessage,
 } from '../services/tutorConversationStore.js';
 
+function isTutorStorageError(error) {
+  return /tutor_(conversas|mensagens)|PGRST205|42P01/i.test(error?.message || '');
+}
+
 /** GET /api/ai/tutor/latest — recupera a última conversa persistida do usuário. */
 export async function getLatestTutor(req, res) {
   try {
@@ -20,7 +24,11 @@ export async function getLatestTutor(req, res) {
     });
   } catch (err) {
     console.error('[getLatestTutor] Erro:', err.message);
-    return res.status(503).json({ error: 'Não foi possível recuperar o histórico do tutor.' });
+    return res.status(503).json({
+      error: isTutorStorageError(err)
+        ? 'Persistência do Tutor não configurada. Execute o supabase_schema.sql no projeto Supabase.'
+        : 'Não foi possível recuperar o histórico do tutor.',
+    });
   }
 }
 
@@ -65,7 +73,11 @@ export async function tutorChat(req, res) {
       return;
     }
     console.error('[tutorChat] Erro ao chamar Gemini:', err.message);
-    return res.status(500).json({ error: 'Erro ao processar resposta do tutor. Tente novamente.' });
+    return res.status(isTutorStorageError(err) ? 503 : 500).json({
+      error: isTutorStorageError(err)
+        ? 'Persistência do Tutor não configurada. Execute o supabase_schema.sql no projeto Supabase.'
+        : 'Erro ao processar resposta do tutor. Tente novamente.',
+    });
   } finally {
     req.removeListener('aborted', abortOnDisconnect);
     res.removeListener('close', abortOnDisconnect);
