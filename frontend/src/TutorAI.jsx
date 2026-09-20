@@ -46,7 +46,7 @@ function MessageBubble({ msg }) {
           {msg.loading ? (
             <span className="flex items-center gap-2 app-text-muted" role="status" aria-live="polite">
               <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-              <span>Pensandoâ€¦</span>
+              <span>Pensando…</span>
             </span>
           ) : msg.error ? (
             <span className="flex items-center gap-2 text-red-600" role="alert">
@@ -275,7 +275,7 @@ export default function TutorIA() {
           type="text"
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder="Pergunte sobre qualquer conteÃºdo do ENEMâ€¦"
+          placeholder="Pergunte sobre qualquer conteúdo do ENEM…"
           disabled={loading || restoring || clearLoading}
           className="app-surface min-w-0 flex-1 rounded-xl px-4 py-3 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-70"
         />

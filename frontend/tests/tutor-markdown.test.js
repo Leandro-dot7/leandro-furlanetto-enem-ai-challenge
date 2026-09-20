@@ -22,3 +22,9 @@ test('renderer expoe tabela responsiva e evita HTML bruto', () => {
   assert.match(renderer, /components/);
   assert.match(renderer, /a:/);
 });
+
+test('Tutor exibe estados de carregamento e placeholder com codificação UTF-8 correta', () => {
+  assert.match(tutor, /<span>Pensando…<\/span>/);
+  assert.match(tutor, /Pergunte sobre qualquer conteúdo do ENEM…/);
+  assert.doesNotMatch(tutor, /Pensandoâ€¦|conteÃºdo|ENEMâ€¦/);
+});
