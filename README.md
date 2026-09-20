@@ -57,9 +57,11 @@ Os arquivos do corpus ficam em `backend/data/enem-rag/` e são ignorados pelo Gi
 
 ## Agentes do projeto
 
-- [Minerva](Minerva.md): engenharia, arquitetura, estabilidade e evolução full-stack.
-- [Morpheus](Morpheus.md): personas sintéticas, UX, acessibilidade e reteste de regressões.
-- [Argos](Argos.md): segurança ofensiva autorizada, com evidências reproduzíveis.
+A governança e ciclo de handoff entre os agentes é detalhada em [agents.md](agents.md). A especificação do sistema está em [spec.md](spec.md).
+
+- [Minerva](agents/Minerva.md): engenharia, arquitetura, estabilidade e evolução full-stack.
+- [Morpheus](agents/Morpheus.md): personas sintéticas, UX, acessibilidade e reteste de regressões.
+- [Argos](agents/Argos.md): segurança ofensiva autorizada, com evidências reproduzíveis.
 
 As execuções e correções ficam registradas em [relatorios/](relatorios/).
 
