@@ -29,7 +29,7 @@ flowchart LR
   subgraph Backend["Serviço Backend (Node.js)"]
     Express["Express 5 (ESM)\naiSecurity (Auth + Rate Limit)\nControllers & Services"]
     RAG["Corpus RAG Local\n(1.553 questões 2015-2023)"]
-    MemoryStore["tutorConversationStore\n(Sessões em memória)"]
+    TutorStore["Supabase tutor_conversas + tutor_mensagens\n(Histórico persistente)"]
   end
 
   subgraph Externos["Serviços Externos"]
@@ -43,7 +43,7 @@ flowchart LR
   React -->|Bearer Token + Payloads| Express
   Express -->|Validação de Token| SupabaseAuth
   Express -->|Consulta Lexical| RAG
-  Express <-->|Histórico Seguro| MemoryStore
+  Express <-->|Histórico Seguro| TutorStore
   Express -->|Prompt Estruturado + JSON Schema| Gemini
 ```
 
@@ -53,7 +53,7 @@ flowchart LR
 | **Backend API** | Node.js 18+, Express 5 (ESM), Dotenv, CORS | Endpoints REST, validação de sessão Supabase, rate limiting por usuário, proxy para LLM. |
 | **Inteligência Artificial** | Google Gemini SDK (`@google/genai`), modelos `gemini-3.6-flash` e `gemini-3.5-flash-lite` | Chat do Tutor, geração de simulados estruturados (JSON), temas e correções de redação. |
 | **Base Vetorial/RAG** | Arquivos locais em `backend/data/enem-rag/` gerados via script de ingestão | Busca lexical de questões reais para contextualização pedagógica sem chamadas de rede externas em runtime. |
-| **Banco e Autenticação** | Supabase Auth + PostgreSQL 15+ com RLS | Autenticação (cadastro, login, redefinição de senha) e persistência de perfis, simulados e redações. |
+| **Banco e Autenticação** | Supabase Auth + PostgreSQL 15+ com RLS | Autenticação (cadastro, login, logout e redefinição de senha) e persistência de perfis, simulados, redações e conversas do Tutor. |
 
 ---
 
@@ -75,7 +75,8 @@ flowchart LR
 
 ### 3.3. Tutor ENEM (Chat Pedagógico)
 - **Hard Constraints de Escopo:** Exclusividade total para matérias do ENEM, conteúdos de Ensino Médio, técnicas de prova e estrutura de redação. Perguntas fora de escopo são educadamente recusadas e redirecionadas para os estudos.
-- **Gestão de Sessão Server-side:** O frontend transmite apenas `message` e o opcional `conversationId`. O histórico prévio fica armazenado no servidor (`tutorConversationStore.js`), impedindo que o estudante adultere mensagens passadas do sistema ou do assistente.
+- **Gestão de Sessão Server-side:** O frontend transmite apenas `message` e o opcional `conversationId`. O histórico fica persistido nas tabelas `tutor_conversas` e `tutor_mensagens`, protegido por RLS e associado ao usuário autenticado.
+- **Restauração de Histórico:** Ao abrir o Tutor, o frontend consulta `GET /api/ai/tutor/latest` e restaura a última conversa persistida do estudante, inclusive após logout, novo login ou reinício do backend.
 - **Cancelamento Elegante:** Suporte a `AbortController` — se o usuário interrompe a requisição no navegador, o backend aborta a chamada ao Gemini e cancela o processamento para economizar quota e evitar inconsistência de histórico.
 - **RAG Lexical Integrado:** Realiza varredura rápida na base local de questões com base nos termos da dúvida do aluno, injetando contexto suplementar em bloco `<REFERENCIAS_RECUPERADAS>`.
 
@@ -110,7 +111,14 @@ Todas as rotas de IA estão agrupadas sob `/api/ai/*` e aplicam os middlewares `
   - `429 Too Many Requests`: Limite de requisições excedido.
   - `500 Internal Server Error`: Falha nos provedores de LLM.
 
-### 4.2. `POST /api/ai/simulado/gerar`
+### 4.2. `GET /api/ai/tutor/latest`
+- **Headers:** `Authorization: Bearer <access_token>`
+- **Respostas:**
+  - `200 OK`: `{"conversationId": "uuid | null", "mensagens": [{"role": "user | model", "text": "string"}]}`
+  - `401 Unauthorized`: Token ausente, inválido ou expirado.
+  - `503 Service Unavailable`: Falha ao consultar o histórico persistido.
+
+### 4.3. `POST /api/ai/simulado/gerar`
 - **Headers:** `Authorization: Bearer <access_token>`
 - **Body:**
   ```json
@@ -138,7 +146,7 @@ Todas as rotas de IA estão agrupadas sob `/api/ai/*` e aplicam os middlewares `
   - `400 Bad Request`: Parâmetros ausentes ou `numQuestoes` fora do intervalo `[1, 20]`.
   - `502 Bad Gateway`: Resposta do modelo não pôde ser convertida em JSON válido.
 
-### 4.3. `POST /api/ai/redacao/gerar-tema`
+### 4.4. `POST /api/ai/redacao/gerar-tema`
 - **Headers:** `Authorization: Bearer <access_token>`
 - **Body:** `{}` (vazio)
 - **Respostas:**
@@ -151,7 +159,7 @@ Todas as rotas de IA estão agrupadas sob `/api/ai/*` e aplicam os middlewares `
     }
     ```
 
-### 4.4. `POST /api/ai/redacao/corrigir`
+### 4.5. `POST /api/ai/redacao/corrigir`
 - **Headers:** `Authorization: Bearer <access_token>`
 - **Body:**
   ```json
@@ -209,16 +217,32 @@ Arquivo de referência: [`supabase_schema.sql`](supabase_schema.sql).
   - `nota_total`: INTEGER NOT NULL
   - `competencias`: JSONB NOT NULL
   - `criado_em`: TIMESTAMPTZ NOT NULL
+- **`public.tutor_conversas`**:
+  - `id`: UUID PRIMARY KEY
+  - `user_id`: UUID NOT NULL REFERENCES `auth.users(id)` ON DELETE CASCADE
+  - `criado_em`: TIMESTAMPTZ NOT NULL
+  - `atualizado_em`: TIMESTAMPTZ NOT NULL
+- **`public.tutor_mensagens`**:
+  - `id`: UUID PRIMARY KEY
+  - `conversation_id`: UUID NOT NULL REFERENCES `tutor_conversas(id)` ON DELETE CASCADE
+  - `user_id`: UUID NOT NULL REFERENCES `auth.users(id)` ON DELETE CASCADE
+  - `papel`: TEXT limitado a `user` ou `model`
+  - `conteudo`: TEXT NOT NULL
+  - `criado_em`: TIMESTAMPTZ NOT NULL
 
 ### 5.2. Políticas de Row Level Security (RLS)
 - Toda tabela possui RLS habilitado:
   - `perfis`: SELECT, INSERT, UPDATE restritos a `auth.uid() = user_id`.
   - `simulados`: SELECT e INSERT restritos a `auth.uid() = user_id`.
   - `redacoes`: SELECT e INSERT restritos a `auth.uid() = user_id`.
+  - `tutor_conversas`: SELECT, INSERT e UPDATE restritos a `auth.uid() = user_id`.
+  - `tutor_mensagens`: SELECT e INSERT restritos ao usuário autenticado e às suas próprias conversas.
 - Permissões concedidas ao papel `authenticated`:
   - `GRANT USAGE ON SCHEMA public TO authenticated;`
   - `GRANT SELECT, INSERT, UPDATE ON public.perfis TO authenticated;`
   - `GRANT SELECT, INSERT ON public.simulados, public.redacoes TO authenticated;`
+  - `GRANT SELECT, INSERT, UPDATE ON public.tutor_conversas TO authenticated;`
+  - `GRANT SELECT, INSERT ON public.tutor_mensagens TO authenticated;`
 
 ---
 
@@ -246,4 +270,4 @@ Arquivo de referência: [`supabase_schema.sql`](supabase_schema.sql).
 4. **Acessibilidade e Usabilidade:**
    - Conformidade com padrões WCAG 2.1 nível AA: contraste de texto adequado, suporte a navegação por teclado (foco visível) e marcação semântica com ARIA (`aria-live`, landmarks).
 5. **Limitações Conhecidas:**
-   - Rate limiting e sessões do tutor residem em memória local do processo Node.js. Arquiteturas com réplicas horizontais exigirão migração para Redis ou persistência no PostgreSQL.
+   - O rate limiting ainda reside em memória local do processo Node.js. Arquiteturas com réplicas horizontais exigirão migração desse estado para Redis ou outra camada compartilhada; o histórico do Tutor já é persistido no PostgreSQL.

@@ -3,10 +3,28 @@ import { getSimuladoRagContext, getTutorRagContext } from '../services/enemRagSe
 import {
   appendTutorTurn,
   getTutorConversation,
+  getLatestTutorConversation,
   validateTutorMessage,
 } from '../services/tutorConversationStore.js';
 
-/** POST /api/ai/tutor — a conversa é mantida no servidor por usuário. */
+/** GET /api/ai/tutor/latest — recupera a última conversa persistida do usuário. */
+export async function getLatestTutor(req, res) {
+  try {
+    const conversation = await getLatestTutorConversation(req.authUser);
+    return res.status(200).json({
+      conversationId: conversation?.id || null,
+      mensagens: conversation?.history.map((message) => ({
+        role: message.role,
+        text: message.parts[0].text,
+      })) || [],
+    });
+  } catch (err) {
+    console.error('[getLatestTutor] Erro:', err.message);
+    return res.status(503).json({ error: 'Não foi possível recuperar o histórico do tutor.' });
+  }
+}
+
+/** POST /api/ai/tutor — a conversa é mantida no servidor e persistida por usuário. */
 export async function tutorChat(req, res) {
   const { message, conversationId } = req.body;
   const safeMessage = validateTutorMessage(message);
@@ -19,9 +37,6 @@ export async function tutorChat(req, res) {
     return res.status(400).json({ error: 'Identificador de conversa inválido.' });
   }
 
-  const conversation = getTutorConversation(req.authUser.id, conversationId);
-  if (!conversation) return res.status(404).json({ error: 'Conversa não encontrada.' });
-
   // A client-side AbortController closes the HTTP request. Propagate that
   // disconnect to the Gemini call so the backend stops waiting and cannot
   // persist a response that the student cancelled.
@@ -31,6 +46,9 @@ export async function tutorChat(req, res) {
   res.once('close', abortOnDisconnect);
 
   try {
+    const conversation = await getTutorConversation(req.authUser, conversationId);
+    if (!conversation) return res.status(404).json({ error: 'Conversa não encontrada.' });
+
     const ragContext = await getTutorRagContext(safeMessage);
     const resposta = await gemini.chatWithTutor([
       ...conversation.history,
@@ -38,7 +56,7 @@ export async function tutorChat(req, res) {
     ], { signal: abortController.signal, retrievalContext: ragContext });
 
     if (abortController.signal.aborted) return;
-    appendTutorTurn(conversation, safeMessage, resposta);
+    await appendTutorTurn(req.authUser, conversation, safeMessage, resposta);
     return res.status(200).json({ resposta, conversationId: conversation.id });
   } catch (err) {
     if (abortController.signal.aborted || err?.name === 'AbortError' || err?.code === 'ABORT_ERR') {

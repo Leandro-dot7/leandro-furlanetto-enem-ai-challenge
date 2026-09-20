@@ -7,9 +7,9 @@ O projeto combina React, Express, Supabase e Google Gemini. O backend concentra 
 ## Funcionalidades
 
 - Dashboard com evolução de estudos.
-- Autenticação Supabase: cadastro, login, recuperação e redefinição de senha.
+- Autenticação Supabase: cadastro, login, logout, recuperação e redefinição de senha.
 - Simulados por área do conhecimento, com questões, alternativas, gabarito e explicação.
-- Tutor ENEM com escopo pedagógico, recusa fora do tema e contexto de conversa mantido no backend.
+- Tutor ENEM com escopo pedagógico, recusa fora do tema e histórico persistido por estudante no Supabase.
 - Correção de redação pelas competências C1–C5.
 - Histórico de simulados e redações com Row Level Security (RLS).
 - Interface responsiva com suporte a teclado, landmarks e mensagens acessíveis.
@@ -36,7 +36,7 @@ flowchart LR
   AI --> Gemini[Google Gemini]
 ```
 
-O frontend protege as páginas para melhorar a experiência, mas a autorização real das rotas de IA acontece no backend. O Tutor mantém o histórico confiável por usuário no servidor; o navegador envia somente a nova mensagem e o identificador da conversa.
+O frontend protege as páginas para melhorar a experiência, mas a autorização real das rotas de IA acontece no backend. O Tutor mantém o histórico confiável por usuário nas tabelas `tutor_conversas` e `tutor_mensagens`; o navegador envia somente a nova mensagem e o identificador da conversa. Ao abrir a tela, a última conversa é restaurada pela rota `GET /api/ai/tutor/latest`.
 
 ## RAG de questões ENEM
 
@@ -117,6 +117,7 @@ Endpoints principais:
 |---|---|---|
 | GET | `/api/health` | Health check |
 | POST | `/api/ai/tutor` | Responder ao Tutor |
+| GET | `/api/ai/tutor/latest` | Restaurar a última conversa persistida |
 | POST | `/api/ai/simulado/gerar` | Gerar questões |
 | POST | `/api/ai/redacao/gerar-tema` | Gerar tema |
 | POST | `/api/ai/redacao/corrigir` | Corrigir redação |
@@ -173,7 +174,7 @@ O projeto também possui auditorias documentadas em `relatorios/`, incluindo as 
 
 - RLS restringe dados ao `auth.uid()` do estudante.
 - CORS é configurável por ambiente; ele não é usado como autenticação.
-- O limite de IA e o contexto do Tutor estão em memória na configuração atual. Para múltiplas instâncias, migrar esses estados para Redis ou Supabase.
+- O limite de IA está em memória na configuração atual. Para múltiplas instâncias, migrar esse estado para Redis ou outra camada compartilhada; o contexto do Tutor é persistido no Supabase.
 - Testes dinâmicos contra homologação exigem URL, janela e contas de teste autorizadas.
 - O Tutor e o gerador de simulados usam RAG lexical com cache local da API enem.dev; a evolução é validar qualidade, origem e busca híbrida quando houver métricas suficientes.
 

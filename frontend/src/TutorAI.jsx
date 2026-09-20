@@ -7,6 +7,7 @@
  */
 import React, { useState, useRef, useEffect } from 'react';
 import api from './lib/api';
+import { useAuth } from './context/AuthContext';
 import { Send, BrainCircuit, User, Loader2, AlertCircle, RotateCcw, X } from 'lucide-react';
 
 function safeLink(url) {
@@ -212,13 +213,42 @@ const SUGGESTIONS = [
 ];
 
 export default function TutorIA() {
+  const { user } = useAuth();
   const [messages, setMessages] = useState([WELCOME]);
   const [conversationId, setConversationId] = useState(null);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const abortControllerRef = useRef(null);
+  const restoringRef = useRef(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    let active = true;
+    if (!user?.id) return () => { active = false; };
+
+    restoringRef.current = true;
+    api.get('/ai/tutor/latest')
+      .then(({ data }) => {
+        if (!active || !data.conversationId || !data.mensagens?.length) return;
+        setConversationId(data.conversationId);
+        setMessages([
+          WELCOME,
+          ...data.mensagens.map((message) => ({ role: message.role, text: message.text })),
+        ]);
+      })
+      .catch((error) => {
+        // O Tutor continua utilizável mesmo se a recuperação do histórico falhar.
+        console.warn('[TutorAI] Não foi possível recuperar o histórico:', error.message);
+      })
+      .finally(() => {
+        restoringRef.current = false;
+        if (active) setRestoring(false);
+      });
+
+    return () => { active = false; };
+  }, [user?.id]);
 
   // Scroll automático para a última mensagem
   useEffect(() => {
@@ -226,7 +256,7 @@ export default function TutorIA() {
   }, [messages]);
 
   async function sendMessage(text) {
-    if (!text.trim() || loading) return;
+    if (!text.trim() || loading || restoringRef.current) return;
 
     const userMsg = { role: 'user', text: text.trim() };
     const placeholderMsg = { role: 'model', loading: true };
@@ -355,7 +385,7 @@ export default function TutorIA() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Pergunte sobre qualquer conteúdo do ENEM..."
-          disabled={loading}
+          disabled={loading || restoring}
           className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm placeholder-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-slate-50 disabled:cursor-not-allowed transition-all"
         />
         {loading ? (
@@ -371,7 +401,7 @@ export default function TutorIA() {
         ) : (
           <button
             type="submit"
-            disabled={!input.trim()}
+            disabled={!input.trim() || restoring}
             aria-label="Enviar pergunta"
             className="flex items-center justify-center w-12 h-12 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed text-white rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex-shrink-0"
           >

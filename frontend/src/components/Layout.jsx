@@ -7,7 +7,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard,
   BookOpen,
@@ -52,14 +51,18 @@ function NavItem({ item, isActive, onClick }) {
 }
 
 export default function Layout({ children }) {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   async function handleLogout() {
-    await supabase.auth.signOut();
-    navigate('/');
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('[logout] Falha ao encerrar sessão:', error);
+    }
   }
 
   const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Estudante';

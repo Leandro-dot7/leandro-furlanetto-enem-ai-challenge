@@ -1,11 +1,17 @@
 import { Router } from 'express';
-import { tutorChat, gerarSimulado, corrigirRedacao, gerarTemaRedacao } from '../controllers/aiController.js';
+import { tutorChat, getLatestTutor, gerarSimulado, corrigirRedacao, gerarTemaRedacao } from '../controllers/aiController.js';
 import { aiRateLimit, requireSupabaseUser } from '../middleware/aiSecurity.js';
 
 const router = Router();
 
 // React route guards do not protect direct HTTP requests.
 router.use(requireSupabaseUser, aiRateLimit);
+
+/**
+ * GET /api/ai/tutor/latest
+ * Recupera a última conversa persistida do estudante autenticado.
+ */
+router.get('/tutor/latest', getLatestTutor);
 
 /**
  * POST /api/ai/tutor

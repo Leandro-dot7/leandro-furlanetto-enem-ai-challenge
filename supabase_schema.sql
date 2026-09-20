@@ -15,7 +15,7 @@ BEGIN
         SELECT schemaname, tablename, policyname
         FROM pg_policies
         WHERE schemaname = 'public'
-          AND tablename IN ('perfis', 'simulados', 'redacoes')
+          AND tablename IN ('perfis', 'simulados', 'redacoes', 'tutor_conversas', 'tutor_mensagens')
           AND policyname LIKE 'Usu%'
     LOOP
         EXECUTE format(
@@ -102,6 +102,60 @@ CREATE POLICY "Usuários podem salvar suas próprias redações"
 CREATE INDEX IF NOT EXISTS idx_simulados_user_id ON public.simulados(user_id);
 CREATE INDEX IF NOT EXISTS idx_redacoes_user_id ON public.redacoes(user_id);
 
+-- 5. Tabelas: tutor_conversas e tutor_mensagens (histórico persistente do Tutor)
+CREATE TABLE IF NOT EXISTS public.tutor_conversas (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    criado_em TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    atualizado_em TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.tutor_mensagens (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    conversation_id UUID NOT NULL REFERENCES public.tutor_conversas(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    papel TEXT NOT NULL CHECK (papel IN ('user', 'model')),
+    conteudo TEXT NOT NULL,
+    criado_em TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.tutor_conversas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tutor_mensagens ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Usuários podem visualizar suas próprias conversas"
+    ON public.tutor_conversas FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Usuários podem criar suas próprias conversas"
+    ON public.tutor_conversas FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Usuários podem atualizar suas próprias conversas"
+    ON public.tutor_conversas FOR UPDATE
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Usuários podem visualizar suas próprias mensagens"
+    ON public.tutor_mensagens FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Usuários podem criar mensagens em suas conversas"
+    ON public.tutor_mensagens FOR INSERT
+    WITH CHECK (
+        auth.uid() = user_id
+        AND EXISTS (
+            SELECT 1
+            FROM public.tutor_conversas
+            WHERE id = conversation_id
+              AND public.tutor_conversas.user_id = auth.uid()
+        )
+    );
+
+CREATE INDEX IF NOT EXISTS idx_tutor_conversas_user_updated
+    ON public.tutor_conversas(user_id, atualizado_em DESC);
+CREATE INDEX IF NOT EXISTS idx_tutor_mensagens_conversation_created
+    ON public.tutor_mensagens(conversation_id, criado_em DESC);
+
 -- 5. Privilégios SQL para o PostgREST/Supabase
 -- RLS controla quais linhas cada usuário pode acessar; GRANT controla se o papel
 -- pode acessar a tabela. Ambos são necessários para o frontend autenticado.
@@ -109,3 +163,5 @@ GRANT USAGE ON SCHEMA public TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON public.perfis TO authenticated;
 GRANT SELECT, INSERT ON public.simulados TO authenticated;
 GRANT SELECT, INSERT ON public.redacoes TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON public.tutor_conversas TO authenticated;
+GRANT SELECT, INSERT ON public.tutor_mensagens TO authenticated;

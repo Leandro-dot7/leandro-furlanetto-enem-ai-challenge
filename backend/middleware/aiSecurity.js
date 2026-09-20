@@ -28,7 +28,9 @@ export async function requireSupabaseUser(req, res, next) {
 
     const user = await response.json();
     if (!user?.id) return res.status(401).json({ error: 'Sessão inválida ou expirada.' });
-    req.authUser = { id: user.id };
+    // O token fica somente no contexto da requisição para que o backend
+    // respeite as políticas RLS do Supabase ao persistir o histórico.
+    req.authUser = { id: user.id, accessToken: token };
     return next();
   } catch (error) {
     console.error('[auth] Falha ao validar sessão:', error.message);
