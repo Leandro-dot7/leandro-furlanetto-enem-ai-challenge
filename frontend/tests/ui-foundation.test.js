@@ -123,5 +123,5 @@ test('estrutura de documentacao e relatorios declara timestamps', () => {
 
   assert.match(reportReadme, /AAAA-MM-DD-HH-mm/);
   assert.match(docsReadme, /spec\.md/);
-  assert.match(docsReadme, /superpowers\/specs/);
+  assert.doesNotMatch(docsReadme, /superpowers/);
 });

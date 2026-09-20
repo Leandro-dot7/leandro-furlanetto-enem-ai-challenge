@@ -44,7 +44,7 @@ O Tutor e o gerador de simulados usam um índice lexical local com questões de 
 
 O Tutor recupera uma referência curta antes de responder. O gerador de simulados recupera até duas referências compactas da área solicitada antes de gerar questões inéditas. O corpus é lido localmente durante as perguntas; a API externa é usada somente no job de ingestão. O contexto enviado ao modelo é limitado para evitar o envio do corpus inteiro e reduzir dependência de rede.
 
-Os arquivos do corpus ficam em `backend/data/enem-rag/` e são ignorados pelo Git. Após uma nova ingestão, reinicie o backend para recarregar o índice em memória. A API é comunitária; valide amostras contra o INEP antes de usar o corpus como fonte oficial.
+Os arquivos do corpus ficam em `backend/data/enem-rag/` e são versionados pelo Git. Após uma nova ingestão, reinicie o backend para recarregar o índice em memória. A API é comunitária; valide amostras contra o INEP antes de usar o corpus como fonte oficial.
 
 ## Stack
 
@@ -109,7 +109,7 @@ Para carregar o corpus inicial do Tutor e dos simulados, execute uma ingestão v
 npm run rag:ingest -- 2015 2016 2017 2018 2019 2020 2021 2022 2023
 ```
 
-O job respeita o limite da API, grava o cache em `backend/data/enem-rag/` (não versionado) e o Tutor e o gerador de simulados consultam somente referências locais durante a geração. Após uma nova ingestão, reinicie o backend para recarregar o corpus.
+O job respeita o limite da API, grava o corpus em `backend/data/enem-rag/` (versionado) e o Tutor e o gerador de simulados consultam somente referências locais durante a geração. Após uma nova ingestão, revise as amostras, commite as alterações e reinicie o backend para recarregar o corpus.
 
 Endpoints principais:
 
@@ -148,6 +148,14 @@ npm run dev
 Abra o endereço informado pelo Vite, normalmente `http://localhost:5173`.
 
 No Supabase Auth, adicione `http://localhost:5173/redefinir-senha` às Redirect URLs. Em produção, cadastre também a URL equivalente do domínio publicado.
+
+## Deploy para a apresentação
+
+O frontend será publicado no Cloudflare Pages e o backend como Render Web Service. No Cloudflare Pages, use `frontend` como diretório raiz, `npm run build` como comando e `dist` como saída. No Render, use `backend` como Root Directory, `npm ci` como Build Command e `npm start` como Start Command.
+
+Variáveis do frontend: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` e `VITE_API_URL` apontando para a URL pública do Render. Variáveis do backend: `GEMINI_API_KEY`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e `CORS_ORIGIN` apontando para o domínio do Cloudflare Pages.
+
+Durante os testes online, mantenha os serviços ligados apenas pelo período necessário. Antes do desligamento, valide `/api/health`, login, Tutor, simulado, redação e persistência. No dia 22, religue o Render e o Cloudflare Pages algumas horas antes das 9h e execute um smoke test final.
 
 ## Validação
 
