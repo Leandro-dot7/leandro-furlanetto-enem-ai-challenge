@@ -48,9 +48,10 @@ function ConfigScreen({ onStart }) {
             </label>
             <select
               id="materia"
+              name="materia"
               value={materia}
               onChange={(e) => setMateria(e.target.value)}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all"
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-[background-color,border-color,box-shadow]"
             >
               {MATERIAS.map((m) => (
                 <option key={m.value} value={m.value}>{m.label}</option>
@@ -70,7 +71,7 @@ function ConfigScreen({ onStart }) {
                   type="button"
                   onClick={() => setNumQuestoes(n)}
                   aria-pressed={numQuestoes === n}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-[background-color,border-color,box-shadow] focus:outline-none focus:ring-2 focus:ring-indigo-500
                     ${numQuestoes === n
                       ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
                       : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-indigo-300'
@@ -107,7 +108,7 @@ function LoadingScreen({ materia }) {
         <div className="flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-2xl mx-auto mb-4">
           <Loader2 size={28} className="text-indigo-600 animate-spin" />
         </div>
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">Gerando seu simulado...</h2>
+        <h2 className="text-lg font-semibold text-slate-900 mb-2">Gerando seu simulado…</h2>
         <p className="text-sm text-slate-500">
           A IA está criando questões de <strong>{materia}</strong> no estilo ENEM.
           <br />Isso pode levar alguns segundos.
@@ -157,7 +158,7 @@ function QuestaoScreen({ questao, totalQuestoes, onResponder }) {
         {/* Alternativas */}
         <div className="space-y-2.5 mb-6" role="radiogroup" aria-label="Alternativas">
           {alternativas.map(([letra_op, texto]) => {
-            let classes = 'flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all text-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2';
+            let classes = 'flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-[background-color,border-color,box-shadow] text-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2';
 
             if (respondida) {
               if (letra_op === gabarito) {

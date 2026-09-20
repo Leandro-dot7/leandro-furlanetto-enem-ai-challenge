@@ -42,7 +42,7 @@ function QuestaoRevisao({ questao, resposta, idx }) {
           : <XCircle size={16} className="text-red-600 flex-shrink-0" />
         }
         <span className="font-medium flex-1 line-clamp-2">
-          Questão {idx + 1} — {questao.enunciado.slice(0, 80)}...
+          Questão {idx + 1} — {questao.enunciado.slice(0, 80)}…
         </span>
         <ChevronDown
           size={16}
@@ -134,7 +134,7 @@ export default function Resultado() {
         <div className="mb-8">
           <div className="h-2 bg-slate-100 rounded-full overflow-hidden" role="progressbar" aria-valuenow={Math.round(pct * 100)} aria-valuemin={0} aria-valuemax={100}>
             <div
-              className={`h-full bg-${desempenho.color}-500 rounded-full transition-all duration-700`}
+            className={`h-full bg-${desempenho.color}-500 rounded-full transition-[width] duration-700`}
               style={{ width: `${pct * 100}%` }}
             />
           </div>

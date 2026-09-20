@@ -123,11 +123,12 @@ export default function Perfil() {
             <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
             <input
               id="pf-name"
+              name="name"
               type="text"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               placeholder="Seu nome"
-              className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all"
+              className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-[background-color,border-color,box-shadow]"
             />
           </div>
         </div>
@@ -141,9 +142,10 @@ export default function Perfil() {
             <GraduationCap size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
             <select
               id="pf-curso"
+              name="cursoAlvo"
               value={form.cursoAlvo}
               onChange={(e) => setForm((f) => ({ ...f, cursoAlvo: e.target.value }))}
-              className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all appearance-none"
+              className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-[background-color,border-color,box-shadow] appearance-none"
             >
               <option value="">Selecione o curso desejado</option>
               {CURSOS.map((c) => (
@@ -162,13 +164,14 @@ export default function Perfil() {
             <Target size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
             <input
               id="pf-meta"
+              name="metaPontuacao"
               type="number"
               min={300}
               max={1000}
               value={form.metaPontuacao}
               onChange={(e) => setForm((f) => ({ ...f, metaPontuacao: e.target.value }))}
               placeholder="Ex: 750"
-              className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all"
+              className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-[background-color,border-color,box-shadow]"
             />
           </div>
           <p className="text-xs text-slate-400 mt-1">Entre 300 e 1000 pontos</p>
@@ -183,7 +186,7 @@ export default function Perfil() {
           {saving ? (
             <>
               <Loader2 size={15} className="animate-spin" />
-              Salvando...
+              Salvando…
             </>
           ) : saved ? (
             <>

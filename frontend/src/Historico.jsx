@@ -27,7 +27,7 @@ function EmptyState({ icon: Icon, title, description, linkTo, linkLabel }) {
       {linkTo && (
         <Link
           to={linkTo}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700 border border-indigo-200 hover:border-indigo-400 rounded-xl px-4 py-2 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700 border border-indigo-200 hover:border-indigo-400 rounded-xl px-4 py-2 transition-[border-color,color,box-shadow] focus:outline-none focus:ring-2 focus:ring-indigo-400"
         >
           {linkLabel}
         </Link>
@@ -178,7 +178,7 @@ export default function Historico() {
                   role="tab"
                   aria-selected={aba === id}
                   onClick={() => setAba(id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-[background-color,color,box-shadow] focus:outline-none focus:ring-2 focus:ring-indigo-400
                     ${aba === id
                       ? 'bg-indigo-600 text-white'
                       : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'

@@ -183,7 +183,7 @@ function MessageBubble({ msg }) {
           {msg.loading ? (
             <span className="flex items-center gap-2 text-slate-400">
               <Loader2 size={14} className="animate-spin" />
-              <span>Pensando...</span>
+              <span>Pensando…</span>
             </span>
           ) : msg.error ? (
             <span className="flex items-center gap-2 text-red-500">
@@ -332,7 +332,7 @@ export default function TutorIA() {
         </div>
         <button
           onClick={handleReset}
-          className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 border border-slate-200 hover:border-slate-300 rounded-lg px-3 py-1.5 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 border border-slate-200 hover:border-slate-300 rounded-lg px-3 py-1.5 transition-[border-color,color,box-shadow] focus:outline-none focus:ring-2 focus:ring-indigo-400"
           aria-label="Reiniciar conversa"
         >
           <RotateCcw size={12} aria-hidden="true" />
@@ -361,7 +361,7 @@ export default function TutorIA() {
             <button
               key={s}
               onClick={() => handleSuggestion(s)}
-              className="text-xs bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-700 text-slate-600 rounded-xl px-3 py-1.5 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="text-xs bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-700 text-slate-600 rounded-xl px-3 py-1.5 transition-[border-color,color,box-shadow] focus:outline-none focus:ring-2 focus:ring-indigo-400"
             >
               {s}
             </button>
@@ -384,9 +384,9 @@ export default function TutorIA() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Pergunte sobre qualquer conteúdo do ENEM..."
+          placeholder="Pergunte sobre qualquer conteúdo do ENEM…"
           disabled={loading || restoring}
-          className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm placeholder-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-slate-50 disabled:cursor-not-allowed transition-all"
+          className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm placeholder-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-slate-50 disabled:cursor-not-allowed transition-[background-color,border-color,box-shadow]"
         />
         {loading ? (
           <button

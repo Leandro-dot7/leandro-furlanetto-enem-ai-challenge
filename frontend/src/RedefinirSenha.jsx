@@ -35,16 +35,16 @@ export default function RedefinirSenha() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="new-password" className="block text-sm font-medium text-slate-700 mb-1.5">Nova senha</label>
-            <input id="new-password" type="password" autoComplete="new-password" minLength={6} required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input id="new-password" name="new-password" type="password" autoComplete="new-password" minLength={6} required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
           <div>
             <label htmlFor="confirm-password" className="block text-sm font-medium text-slate-700 mb-1.5">Confirmar nova senha</label>
-            <input id="confirm-password" type="password" autoComplete="new-password" minLength={6} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input id="confirm-password" name="confirm-password" type="password" autoComplete="new-password" minLength={6} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
           {error && <p role="alert" className="flex gap-2 text-sm text-red-700"><AlertCircle size={16} aria-hidden="true" />{error}</p>}
           {status && <p role="status" className="flex gap-2 text-sm text-emerald-700"><CheckCircle size={16} aria-hidden="true" />{status}</p>}
           <button type="submit" disabled={loading || Boolean(status)} className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-            {loading ? 'Atualizando...' : 'Atualizar senha'}
+            {loading ? 'Atualizando…' : 'Atualizar senha'}
           </button>
         </form>
         <Link to="/recuperar-senha" className="block text-center text-sm text-indigo-600 hover:underline mt-5">Solicitar outro link</Link>

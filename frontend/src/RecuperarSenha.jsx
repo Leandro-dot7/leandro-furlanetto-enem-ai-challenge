@@ -36,12 +36,12 @@ export default function RecuperarSenha() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="recovery-email" className="block text-sm font-medium text-slate-700 mb-1.5">E-mail</label>
-            <input id="recovery-email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input id="recovery-email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
           {error && <p role="alert" className="flex gap-2 text-sm text-red-700"><AlertCircle size={16} aria-hidden="true" />{error}</p>}
           {status && <p role="status" className="flex gap-2 text-sm text-emerald-700"><CheckCircle size={16} aria-hidden="true" />{status}</p>}
           <button type="submit" disabled={loading} className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-            {loading ? 'Enviando...' : 'Enviar link de recuperação'}
+            {loading ? 'Enviando…' : 'Enviar link de recuperação'}
           </button>
         </form>
         <Link to="/" className="block text-center text-sm text-indigo-600 hover:underline mt-5">Voltar para entrar</Link>

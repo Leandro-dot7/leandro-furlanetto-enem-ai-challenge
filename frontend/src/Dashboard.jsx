@@ -24,7 +24,7 @@ function FeatureCard({ to, icon: Icon, title, description, color }) {
   return (
     <Link
       to={to}
-      className={`group flex flex-col p-5 bg-white rounded-2xl border border-slate-200 hover:border-${color}-300 hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400`}
+      className={`group flex flex-col p-5 bg-white rounded-2xl border border-slate-200 hover:border-${color}-300 hover:shadow-md transition-[border-color,box-shadow] duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400`}
       aria-label={`Ir para ${title}`}
     >
       <div className={`flex items-center justify-center w-11 h-11 rounded-xl bg-${color}-100 mb-4`}>

@@ -38,7 +38,7 @@ function NotaGauge({ nota, cor }) {
       <span className={`text-lg font-bold ${textMap[cor]} w-10`}>{nota}</span>
       <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
         <div
-          className={`h-full ${corMap[cor]} rounded-full transition-all duration-700`}
+          className={`h-full ${corMap[cor]} rounded-full transition-[width] duration-700`}
           style={{ width: `${pct}%` }}
           role="progressbar"
           aria-valuenow={nota}
@@ -83,7 +83,7 @@ function ResultadoCorrecao({ resultado, onNova }) {
         </div>
         <div className="h-3 bg-slate-100 rounded-full overflow-hidden" role="progressbar" aria-valuenow={resultado.notaTotal} aria-valuemin={0} aria-valuemax={1000}>
           <div
-            className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-all duration-700"
+            className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-[width] duration-700"
             style={{ width: `${pctTotal}%` }}
           />
         </div>
@@ -125,7 +125,7 @@ function ResultadoCorrecao({ resultado, onNova }) {
 
       <button
         onClick={onNova}
-        className="flex items-center justify-center gap-2 w-full border border-slate-200 hover:border-indigo-300 text-slate-700 hover:text-indigo-700 font-medium py-3 rounded-xl transition-all text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        className="flex items-center justify-center gap-2 w-full border border-slate-200 hover:border-indigo-300 text-slate-700 hover:text-indigo-700 font-medium py-3 rounded-xl transition-[border-color,color,box-shadow] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
       >
         <RotateCcw size={15} aria-hidden="true" />
         Corrigir nova redação
@@ -222,18 +222,18 @@ export default function Redacao() {
         {/* Tema */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-            <label className="text-sm font-semibold text-slate-700">Proposta Temática</label>
+            <label htmlFor="redacao-tema" className="text-sm font-semibold text-slate-700">Proposta Temática</label>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleGerarTema}
                 disabled={gerandoTema}
-                className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 font-medium px-3 py-1.5 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 font-medium px-3 py-1.5 rounded-lg transition-[background-color,color,box-shadow] focus:outline-none focus:ring-2 focus:ring-indigo-400"
               >
                 {gerandoTema ? (
                   <>
                     <RefreshCw size={12} className="animate-spin" />
-                    Gerando tema...
+                    Gerando tema…
                   </>
                 ) : (
                   <>
@@ -245,7 +245,7 @@ export default function Redacao() {
               <button
                 type="button"
                 onClick={() => setTemaCustom(!temaCustom)}
-                className="text-xs text-slate-500 hover:text-slate-700 font-medium focus:outline-none focus:underline"
+                className="text-xs text-slate-500 hover:text-slate-700 font-medium focus:outline-none focus-visible:underline"
               >
                 {temaCustom ? 'Usar tema gerado' : 'Digitar outro tema'}
               </button>
@@ -255,10 +255,13 @@ export default function Redacao() {
           {temaCustom ? (
             <input
               type="text"
+              id="redacao-tema"
+              name="tema"
+              autoComplete="off"
               value={tema}
               onChange={(e) => setTema(e.target.value)}
-              placeholder="Digite o tema da sua redação..."
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all"
+              placeholder="Digite o tema da sua redação…"
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-[background-color,border-color,box-shadow]"
             />
           ) : (
             <div className="bg-amber-50/80 border border-amber-200 rounded-xl px-4 py-3.5 space-y-1.5">
@@ -289,11 +292,14 @@ export default function Redacao() {
           </div>
           <textarea
             id="redacao-texto"
+            name="texto"
+            autoComplete="off"
+            spellCheck="true"
             rows={16}
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
-            placeholder="Cole ou digite sua redação aqui. Divida em introdução, desenvolvimento e conclusão (mínimo de 50 caracteres)..."
-            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 leading-relaxed placeholder-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all resize-none"
+            placeholder="Cole ou digite sua redação aqui. Divida em introdução, desenvolvimento e conclusão (mínimo de 50 caracteres)…"
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 leading-relaxed placeholder-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-[background-color,border-color,box-shadow] resize-none"
           />
           {charCount > 0 && charCount < 50 && (
             <p className="text-xs text-amber-600 mt-1.5">
@@ -304,7 +310,7 @@ export default function Redacao() {
 
         {/* Erro */}
         {erro && (
-          <div role="alert" className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+          <div role="alert" aria-live="polite" className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
             <AlertCircle size={16} className="flex-shrink-0 mt-0.5" aria-hidden="true" />
             <p>{erro}</p>
           </div>
@@ -318,7 +324,7 @@ export default function Redacao() {
           {loading ? (
             <>
               <Loader2 size={16} className="animate-spin" />
-              <span>Avaliando com grade oficial do ENEM...</span>
+              <span>Avaliando com grade oficial do ENEM…</span>
             </>
           ) : (
             <>
