@@ -6,7 +6,8 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
-import { GraduationCap, Mail, Lock, CheckCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
+import AuthLayout from './components/AuthLayout.jsx';
 import FeedbackMessage from './components/ui/FeedbackMessage.jsx';
 
 export default function Login() {
@@ -35,67 +36,11 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex">
-      {/* Painel esquerdo — branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-700 flex-col items-center justify-center p-12 text-white">
-        <div className="max-w-sm">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="flex items-center justify-center w-12 h-12 bg-white/20 rounded-2xl backdrop-blur-sm">
-              <GraduationCap size={28} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">Minerva</h1>
-              <p className="text-indigo-200 text-sm">Plataforma ENEM</p>
-            </div>
-          </div>
-
-          <h2 className="text-3xl font-bold mb-4 leading-tight">
-            Sua preparação para o ENEM começa aqui.
-          </h2>
-          <p className="text-indigo-200 text-lg leading-relaxed mb-8">
-            Simulados personalizados, tutor com IA e correção de redação — tudo em um só lugar.
-          </p>
-
-          <div className="space-y-3">
-            {[
-              '🤖 Tutor IA especializado no ENEM',
-              '📝 Simulados gerados por inteligência artificial',
-              '✍️ Correção de redação por competência',
-            ].map((item) => (
-              <div key={item} className="flex items-center gap-2 text-indigo-100">
-                <span>{item}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Painel direito — formulário */}
-      <div className="app-surface flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-sm">
-          {/* Logo mobile */}
-          <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <GraduationCap size={24} className="text-indigo-600" />
-            <span className="text-xl font-bold text-slate-900">Minerva ENEM</span>
-          </div>
-
-          <h2 className="text-2xl font-bold text-slate-900 mb-1">Entrar na conta</h2>
-          <p className="text-slate-500 text-sm mb-8">
-            Não tem conta?{' '}
-            <Link to="/cadastro" className="text-indigo-600 font-medium hover:text-indigo-700 underline-offset-2 hover:underline">
-              Cadastre-se grátis
-            </Link>
-          </p>
-
-          {/* Mensagem de sucesso (vinda do cadastro) */}
-          {location.state?.message && (
-            <div role="status" className="flex items-start gap-2 p-3 mb-5 bg-green-50 border border-green-200 rounded-xl text-green-800 text-sm">
-              <CheckCircle size={16} className="flex-shrink-0 mt-0.5" />
-              <p>{location.state.message}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+    <AuthLayout>
+      <h2 className="auth-title">Bem-vindo<br /><span>de volta.</span></h2>
+      <p className="auth-form-description">Retome de onde parou. Seu próximo passo está aqui.</p>
+      {location.state?.message && <div className="mb-5"><FeedbackMessage tone="success">{location.state.message}</FeedbackMessage></div>}
+      <form onSubmit={handleSubmit} className="space-y-4">
             {/* E-mail */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -106,10 +51,10 @@ export default function Login() {
                 <input
                   id="email"
                   name="email"
-                  type="email"
+                  type="email" spellCheck={false}
                   autoComplete="email"
                   inputMode="email"
-                  placeholder="seu@email.com"
+                  placeholder="exemplo@email.com…"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -139,7 +84,7 @@ export default function Login() {
               </div>
             </div>
             <div className="text-right -mt-2">
-              <Link to="/recuperar-senha" className="text-xs text-indigo-600 hover:text-indigo-700 hover:underline">
+              <Link to="/recuperar-senha" className="text-xs app-text-accent font-semibold hover:underline">
                 Esqueci minha senha
               </Link>
             </div>
@@ -151,7 +96,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-sm"
+              className="btn-primary w-full"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -162,12 +107,11 @@ export default function Login() {
                   Entrando…
                 </span>
               ) : (
-                'Entrar'
+                <>Entrar no Minerva <ArrowRight size={18} aria-hidden="true" /></>
               )}
             </button>
           </form>
-        </div>
-      </div>
-    </div>
+      <div className="auth-divider"><span>Primeira vez por aqui?</span></div><Link to="/cadastro" className="btn-secondary w-full">Criar conta grátis</Link>
+    </AuthLayout>
   );
 }

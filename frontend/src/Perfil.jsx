@@ -6,8 +6,9 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from './context/AuthContext';
 import { supabase } from './lib/supabase';
-import { User, Target, GraduationCap, Mail, Save, CheckCircle, Loader2 } from 'lucide-react';
+import { User, Target, GraduationCap, Mail, Save, CheckCircle, Loader2, ChevronDown } from 'lucide-react';
 import FeedbackMessage from './components/ui/FeedbackMessage.jsx';
+import PageHeader from './components/ui/PageHeader.jsx';
 
 const CURSOS = [
   'Medicina', 'Engenharia', 'Direito', 'Ciência da Computação',
@@ -78,8 +79,9 @@ export default function Perfil() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 size={28} className="text-indigo-500 animate-spin" />
+      <div className="app-text-muted flex items-center justify-center gap-3 py-24" role="status">
+        <Loader2 size={24} className="app-text-accent animate-spin" aria-hidden="true" />
+        Carregando seu perfil…
       </div>
     );
   }
@@ -87,41 +89,51 @@ export default function Perfil() {
   const inicial = (form.name || user?.email || 'E').charAt(0).toUpperCase();
 
   return (
-    <div className="max-w-lg mx-auto animate-slide-up">
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-          <User size={22} className="text-indigo-600" aria-hidden="true" />
-          Meu Perfil
-        </h1>
-        <p className="text-sm text-slate-500 mt-1">Suas informações e metas de estudo</p>
-      </div>
+    <div className="page-stack mx-auto max-w-6xl space-y-8 animate-slide-up">
+      <PageHeader eyebrow="Sua jornada, seus objetivos" title="Meu Perfil" description="Suas informações e metas de estudo" />
 
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.65fr)]">
       {/* Avatar */}
-      <div className="app-surface app-card flex items-center gap-4 rounded-2xl p-5 mb-4">
+      <aside className="space-y-5" aria-label="Seu perfil de estudante">
+      <div className="app-surface app-card overflow-hidden">
+        <div className="app-surface-muted h-20 border-0" aria-hidden="true" />
+        <div className="px-6 pb-7 sm:px-8">
         <div
-          className="flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-600 text-white text-2xl font-bold flex-shrink-0"
+          className="app-surface app-text-accent relative -mt-9 mb-5 flex h-20 w-20 items-center justify-center rounded-3xl text-3xl font-bold shadow-sm"
           aria-hidden="true"
         >
           {inicial}
         </div>
-        <div>
-          <p className="font-semibold text-slate-900">{form.name || 'Estudante'}</p>
-          <div className="flex items-center gap-1.5 text-sm text-slate-500 mt-0.5">
-            <Mail size={14} aria-hidden="true" />
-            <span>{user?.email}</span>
+        <div className="min-w-0">
+          <p className="eyebrow app-text-subtle mb-2">Estudante Minerva</p>
+          <h2 className="break-words text-2xl font-bold tracking-tight">{form.name || 'Estudante'}</h2>
+          <div className="app-text-muted mt-3 flex items-start gap-2 text-sm">
+            <Mail size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+            <span className="break-all">{user?.email}</span>
           </div>
         </div>
+        </div>
       </div>
+      <div className="app-surface-muted app-card p-6 sm:p-8">
+        <span className="feature-icon aqua mb-5"><Target size={24} aria-hidden="true" /></span>
+        <h2 className="text-xl font-bold tracking-tight">Dê direção aos seus estudos.</h2>
+        <p className="app-text-muted mt-3 text-sm leading-6">Escolha o curso que você quer conquistar e uma pontuação como referência para sua preparação. Você pode ajustar suas metas quando precisar.</p>
+      </div>
+      </aside>
 
       {/* Formulário */}
-      <form onSubmit={handleSave} className="app-surface app-card rounded-2xl p-5 space-y-5">
+      <form onSubmit={handleSave} className="app-surface app-card overflow-hidden" aria-label="Editar perfil e metas" aria-busy={saving}>
+        <div className="space-y-8 p-6 sm:p-8">
+        <fieldset className="min-w-0 space-y-5">
+          <legend className="section-heading mb-2 text-xl font-bold tracking-tight">Informações pessoais</legend>
+          <p className="app-text-muted text-sm leading-6">Como você quer ser chamado durante sua preparação?</p>
         {/* Nome */}
         <div>
-          <label htmlFor="pf-name" className="block text-sm font-medium text-slate-700 mb-1.5">
+          <label htmlFor="pf-name" className="mb-2 block text-sm font-semibold">
             Nome completo
           </label>
           <div className="relative">
-            <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+            <User size={18} className="app-text-subtle pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" aria-hidden="true" />
             <input
               id="pf-name"
               name="name"
@@ -130,82 +142,96 @@ export default function Perfil() {
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               placeholder="Seu nome"
-              className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-[background-color,border-color,box-shadow]"
+              className="app-surface-muted min-h-12 w-full rounded-xl py-3 pl-11 pr-4 text-sm transition-[border-color,box-shadow]"
             />
           </div>
         </div>
+        </fieldset>
 
+        <fieldset className="min-w-0 space-y-5 border-t border-[var(--app-border)] pt-6">
+          <legend className="section-heading pr-3 text-xl font-bold tracking-tight">Seus objetivos no ENEM</legend>
+          <p className="app-text-muted text-sm leading-6">Um objetivo claro para acompanhar cada etapa da sua evolução.</p>
         {/* Curso alvo */}
         <div>
-          <label htmlFor="pf-curso" className="block text-sm font-medium text-slate-700 mb-1.5">
+          <label htmlFor="pf-curso" className="mb-2 block text-sm font-semibold">
             Curso alvo
           </label>
           <div className="relative">
-            <GraduationCap size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+            <GraduationCap size={18} className="app-text-subtle pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" aria-hidden="true" />
             <select
               id="pf-curso"
               name="cursoAlvo"
               value={form.cursoAlvo}
               onChange={(e) => setForm((f) => ({ ...f, cursoAlvo: e.target.value }))}
-              className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-[background-color,border-color,box-shadow] appearance-none"
+              className="app-surface-muted min-h-12 w-full appearance-none rounded-xl py-3 pl-11 pr-10 text-sm transition-[border-color,box-shadow]"
             >
               <option value="">Selecione o curso desejado</option>
               {CURSOS.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
+            <ChevronDown size={16} className="app-text-subtle pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" aria-hidden="true" />
           </div>
         </div>
 
         {/* Meta de pontuação */}
         <div>
-          <label htmlFor="pf-meta" className="block text-sm font-medium text-slate-700 mb-1.5">
+          <label htmlFor="pf-meta" className="mb-2 block text-sm font-semibold">
             Meta de pontuação no ENEM
           </label>
           <div className="relative">
-            <Target size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+            <Target size={18} className="app-text-subtle pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" aria-hidden="true" />
             <input
               id="pf-meta"
               name="metaPontuacao"
               type="number"
               inputMode="numeric"
+              aria-describedby="pf-meta-hint"
               min={300}
               max={1000}
               value={form.metaPontuacao}
               onChange={(e) => setForm((f) => ({ ...f, metaPontuacao: e.target.value }))}
               placeholder="Ex: 750"
-              className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-[background-color,border-color,box-shadow]"
+              className="app-surface-muted min-h-12 w-full rounded-xl py-3 pl-11 pr-4 text-sm transition-[border-color,box-shadow]"
             />
           </div>
-          <p className="text-xs text-slate-400 mt-1">Entre 300 e 1000 pontos</p>
+          <p id="pf-meta-hint" className="app-text-subtle mt-2 text-xs">Entre 300 e 1000 pontos</p>
+        </div>
+        </fieldset>
         </div>
 
         {/* Botão salvar */}
+        <div className="app-surface-muted space-y-4 border-x-0 border-b-0 p-6 sm:p-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="app-text-muted max-w-xs text-sm leading-6">Salve para manter suas informações e metas atualizadas.</p>
         <button
           type="submit"
           disabled={saving}
-          className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-2.5 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-sm"
+          className="btn-primary flex min-h-12 shrink-0 items-center justify-center gap-2 px-6 py-3 text-sm"
         >
           {saving ? (
             <>
-              <Loader2 size={15} className="animate-spin" />
+              <Loader2 size={18} className="animate-spin" aria-hidden="true" />
               Salvando…
             </>
           ) : saved ? (
             <>
-              <CheckCircle size={15} />
+              <CheckCircle size={18} aria-hidden="true" />
               Salvo!
             </>
           ) : (
             <>
-              <Save size={15} />
+              <Save size={18} aria-hidden="true" />
               Salvar perfil
             </>
           )}
         </button>
+        </div>
 
         {saved && <FeedbackMessage tone="success">Perfil atualizado com sucesso!</FeedbackMessage>}
+        </div>
       </form>
+      </div>
     </div>
   );
 }

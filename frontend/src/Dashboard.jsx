@@ -22,21 +22,24 @@ import {
 } from 'lucide-react';
 
 // Card de acesso rápido
-function FeatureCard({ to, icon: Icon, title, description, color }) {
+function FeatureCard({ to, icon: Icon, title, description, aqua = false }) {
   return (
     <Link
       to={to}
-      className={`app-surface app-card-interactive group flex flex-col p-5 rounded-2xl hover:border-${color}-300 focus:outline-none focus:ring-2 focus:ring-indigo-400`}
+      className="app-surface app-card app-card-interactive group flex h-full flex-col p-6 sm:p-7"
       aria-label={`Ir para ${title}`}
     >
-      <div className={`flex items-center justify-center w-11 h-11 rounded-xl bg-${color}-100 mb-4`}>
-        <Icon size={22} className={`text-${color}-600`} aria-hidden="true" />
+      <div className="mb-6 flex items-center justify-between">
+        <span className={`feature-icon ${aqua ? 'aqua' : ''}`}>
+          <Icon size={23} aria-hidden="true" />
+        </span>
+        <ChevronRight size={20} className="app-text-subtle" aria-hidden="true" />
       </div>
-      <h3 className="font-semibold text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors">
+      <h3 className="mb-2 text-xl font-bold tracking-tight">
         {title}
       </h3>
-      <p className="text-sm text-slate-500 flex-1">{description}</p>
-      <div className={`flex items-center gap-1 mt-3 text-xs font-medium text-${color}-600`}>
+      <p className="app-text-muted flex-1 text-sm leading-6">{description}</p>
+      <div className="app-text-accent mt-6 flex items-center gap-2 text-sm font-semibold">
         <span>Acessar</span>
         <ChevronRight size={14} aria-hidden="true" />
       </div>
@@ -45,18 +48,16 @@ function FeatureCard({ to, icon: Icon, title, description, color }) {
 }
 
 // Card de estatística
-function StatCard({ label, value, icon: Icon, color, suffix = '' }) {
+function StatCard({ label, value, icon: Icon, suffix = '' }) {
   return (
-    <div className="app-surface app-card flex items-center gap-4 p-5">
-      <div className={`flex items-center justify-center w-12 h-12 rounded-xl bg-${color}-100 flex-shrink-0`}>
-        <Icon size={22} className={`text-${color}-600`} aria-hidden="true" />
+    <div className="app-surface app-card stat-card min-w-0 p-6">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <p className="app-text-muted text-sm font-medium">{label}</p>
+        <Icon size={20} className="app-text-accent shrink-0" aria-hidden="true" />
       </div>
-      <div>
-        <p className="text-2xl font-bold text-slate-900">
-          {value}<span className="text-lg">{suffix}</span>
-        </p>
-        <p className="text-sm text-slate-500">{label}</p>
-      </div>
+      <p className="text-4xl font-bold tracking-tight tabular-nums">
+        {value}<span className="app-text-subtle ml-1 text-xl">{suffix}</span>
+      </p>
     </div>
   );
 }
@@ -114,88 +115,89 @@ export default function Dashboard() {
   }, [user]);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-slide-up">
+    <div className="page-stack mx-auto max-w-6xl space-y-8 animate-slide-up">
       <PageHeader
         eyebrow="Seu estúdio de preparação"
-        title={`Olá, ${userName}! 👋`}
+        title={`Olá, ${userName}!`}
         description="Acompanhe seu progresso e escolha a próxima atividade para estudar para o ENEM."
       />
+
+      <section className="grid gap-5 lg:grid-cols-[1.6fr_1fr]" aria-label="Sua próxima atividade">
+        <div className="app-surface app-card relative overflow-hidden p-6 sm:p-9">
+          <div className="mb-8 flex items-center gap-3">
+            <span className="feature-icon"><BookOpen size={24} aria-hidden="true" /></span>
+            <p className="eyebrow app-text-accent">Um passo mais perto do ENEM</p>
+          </div>
+          <h2 className="max-w-lg text-3xl font-bold leading-tight tracking-tight sm:text-4xl">Seu próximo desafio começa aqui.</h2>
+          <p className="app-text-muted mt-4 max-w-lg text-base leading-7">Questões no estilo ENEM, por área do conhecimento. Escolha uma matéria e coloque o que aprendeu em prática.</p>
+          <Link to="/simulado" className="btn-primary mt-8 inline-flex min-h-12 items-center justify-center gap-3 px-6 py-3">
+            Fazer Simulado <ChevronRight size={18} aria-hidden="true" />
+          </Link>
+        </div>
+        <aside className="app-surface-muted app-card flex flex-col justify-between gap-6 p-6 sm:p-8" aria-label="Dica de estudo do dia">
+          <div>
+            <span className="feature-icon aqua mb-5"><Flame size={24} aria-hidden="true" /></span>
+            <p className="eyebrow app-text-accent mb-3">Dica Minerva</p>
+            <h2 className="text-2xl font-bold tracking-tight">Revisar também é avançar.</h2>
+            <p className="app-text-muted mt-3 text-sm leading-6">Depois do simulado, reserve um momento para entender seus erros. Leve suas dúvidas ao Tutor IA e retome os conceitos antes do próximo desafio.</p>
+          </div>
+          <Link to="/tutor" className="btn-secondary inline-flex min-h-12 items-center justify-center gap-2 px-5 py-3">Revisar com o Tutor IA <ChevronRight size={17} aria-hidden="true" /></Link>
+        </aside>
+      </section>
 
       {/* Estatísticas */}
       <section aria-label="Suas estatísticas de estudo">
         {dataError && <FeedbackMessage tone="warning" title="Progresso indisponível">{dataError}</FeedbackMessage>}
-        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="section-heading text-xl font-bold tracking-tight">
           Seu progresso
         </h2>
+        <Link to="/historico" className="app-text-accent inline-flex min-h-11 items-center gap-1 text-sm font-semibold">Ver histórico <ChevronRight size={16} aria-hidden="true" /></Link>
+        </div>
         {loading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid gap-4 sm:grid-cols-3" role="status" aria-label="Carregando suas estatísticas">
+            <span className="sr-only">Carregando suas estatísticas…</span>
             {[1, 2, 3].map((i) => (
-              <div key={i} className="app-surface app-card h-24 animate-pulse p-5" />
+              <div key={i} className="app-surface app-card h-36 animate-pulse p-5" aria-hidden="true" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            <StatCard label="Simulados feitos" value={stats.total} icon={Target} color="indigo" />
-            <StatCard label="Média de acertos" value={stats.mediaAcertos} icon={TrendingUp} color="emerald" suffix="%" />
-            <StatCard label="Redações enviadas" value={stats.redacoes} icon={Award} color="amber" />
+          <div className="grid gap-4 sm:grid-cols-3">
+            <StatCard label="Simulados feitos" value={dataError ? '—' : stats.total} icon={Target} />
+            <StatCard label="Média de acertos" value={dataError || !stats.total ? '—' : stats.mediaAcertos} icon={TrendingUp} suffix={dataError || !stats.total ? '' : '%'} />
+            <StatCard label="Redações enviadas" value={dataError ? '—' : stats.redacoes} icon={Award} />
           </div>
         )}
       </section>
 
       {/* Acesso rápido */}
       <section aria-label="Acesso rápido às funcionalidades">
-        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
+        <h2 className="section-heading mb-4 text-xl font-bold tracking-tight">
           O que você quer fazer?
         </h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <FeatureCard
-            to="/simulado"
-            icon={BookOpen}
-            title="Fazer Simulado"
-            description="Questões no estilo ENEM geradas por IA, por área do conhecimento."
-            color="indigo"
-          />
+        <div className="grid gap-4 md:grid-cols-3">
           <FeatureCard
             to="/tutor"
             icon={BrainCircuit}
             title="Tutor IA"
             description="Tire dúvidas de qualquer matéria do ENEM com seu assistente inteligente."
-            color="violet"
           />
           <FeatureCard
             to="/redacao"
             icon={FileText}
             title="Redação"
             description="Escreva e receba correção detalhada pelas 5 competências do ENEM."
-            color="amber"
+            aqua
           />
           <FeatureCard
             to="/historico"
             icon={BarChart2}
             title="Histórico"
             description="Acompanhe sua evolução e veja onde precisa melhorar."
-            color="emerald"
           />
         </div>
       </section>
 
-      {/* Dica do dia */}
-      <section
-        className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl p-6 text-white"
-        aria-label="Dica de estudo do dia"
-      >
-        <div className="flex items-start gap-3">
-          <Flame size={22} className="flex-shrink-0 mt-0.5 text-amber-300" aria-hidden="true" />
-          <div>
-            <h3 className="font-semibold mb-1">💡 Dica Minerva</h3>
-            <p className="text-indigo-100 text-sm leading-relaxed">
-              Estudantes que fazem pelo menos <strong className="text-white">3 simulados por semana</strong> e
-              revisam os erros com o Tutor IA melhoram em média 18% no desempenho em 30 dias.
-              Comece pelo seu simulado de hoje!
-            </p>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

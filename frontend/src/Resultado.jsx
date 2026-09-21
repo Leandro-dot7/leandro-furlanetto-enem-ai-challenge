@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { Trophy, RotateCcw, BarChart2, CheckCircle, XCircle, ChevronDown } from 'lucide-react';
+import { Trophy, RotateCcw, BarChart2, CheckCircle, XCircle, ChevronDown, BookOpen, List } from 'lucide-react';
 import FeedbackMessage from './components/ui/FeedbackMessage.jsx';
 
 // Calcula a pontuação TRI estimada (simplificado)
@@ -18,10 +18,10 @@ function calcPontuacao(acertos, total) {
 }
 
 function getDesempenho(pct) {
-  if (pct >= 0.9) return { label: 'Excelente! 🏆', color: 'emerald' };
-  if (pct >= 0.7) return { label: 'Muito bom! 👏', color: 'indigo' };
-  if (pct >= 0.5) return { label: 'Bom! Continue estudando 📚', color: 'amber' };
-  return { label: 'Precisa revisar o conteúdo 💪', color: 'red' };
+  if (pct >= 0.9) return { label: 'Excelente!', color: 'emerald' };
+  if (pct >= 0.7) return { label: 'Muito bom!', color: 'indigo' };
+  if (pct >= 0.5) return { label: 'Bom! Continue estudando', color: 'amber' };
+  return { label: 'Precisa revisar o conteúdo', color: 'red' };
 }
 
 // Card de revisão de questão
@@ -30,47 +30,51 @@ function QuestaoRevisao({ questao, resposta, idx }) {
   const correto = resposta === questao.gabarito;
 
   return (
-    <div className={`border rounded-xl overflow-hidden ${correto ? 'border-emerald-200' : 'border-red-200'}`}>
+    <div className="app-surface app-card overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors text-sm
-          ${correto ? 'bg-emerald-50 hover:bg-emerald-100' : 'bg-red-50 hover:bg-red-100'}`}
+        className="flex w-full items-center gap-3 px-4 py-5 text-left text-sm transition-colors hover:bg-[var(--app-surface-muted)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500 sm:gap-4 sm:px-6"
         aria-expanded={open}
         aria-controls={`questao-${idx}`}
       >
         {correto
-          ? <CheckCircle size={16} className="text-emerald-600 flex-shrink-0" />
-          : <XCircle size={16} className="text-red-600 flex-shrink-0" />
+          ? <CheckCircle size={22} className="text-emerald-600 flex-shrink-0" aria-hidden="true" />
+          : <XCircle size={22} className="text-red-600 flex-shrink-0" aria-hidden="true" />
         }
-        <span className="font-medium flex-1 line-clamp-2">
-          Questão {idx + 1} — {questao.enunciado.slice(0, 80)}…
+        <span className="min-w-0 flex-1">
+          <span className="mb-1 flex flex-wrap items-center gap-x-3 gap-y-1"><span className="font-bold">Questão {idx + 1}</span><span className="app-text-subtle text-xs">{correto ? 'Resposta correta' : 'Para revisar'}</span></span>
+          <span className="app-text-muted line-clamp-2 leading-relaxed">{questao.enunciado.slice(0, 80)}…</span>
         </span>
         <ChevronDown
           size={16}
-          className={`flex-shrink-0 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`app-text-subtle flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
           aria-hidden="true"
         />
       </button>
       {open && (
-        <div id={`questao-${idx}`} className="px-4 py-4 bg-white border-t text-sm space-y-2">
-          <p className="text-slate-700 mb-3">{questao.enunciado}</p>
-          <div className="space-y-1.5">
+        <div id={`questao-${idx}`} className="space-y-5 border-t border-[var(--app-border)] px-4 py-6 text-sm sm:px-6">
+          <p className="whitespace-pre-line text-base leading-8">{questao.enunciado}</p>
+          <div className="space-y-2">
             {Object.entries(questao.alternativas).map(([l, t]) => (
               <div
                 key={l}
-                className={`flex items-start gap-2 px-3 py-2 rounded-lg text-xs
+                className={`flex items-start gap-3 px-4 py-3 rounded-xl text-sm leading-relaxed
                   ${l === questao.gabarito ? 'bg-emerald-100 text-emerald-800 font-medium' :
                     l === resposta && resposta !== questao.gabarito ? 'bg-red-100 text-red-700' :
-                    'text-slate-600'
+                    'app-surface-muted app-text-muted'
                   }`}
               >
                 <span className="font-bold flex-shrink-0">{l})</span>
-                <span>{t}</span>
+                <span className="min-w-0 flex-1">{t}
+                  {l === questao.gabarito && <span className="mt-1 block text-xs font-bold">Gabarito{l === resposta ? ' · Sua resposta' : ''}</span>}
+                  {l === resposta && l !== questao.gabarito && <span className="mt-1 block text-xs font-bold">Sua resposta</span>}
+                </span>
               </div>
             ))}
           </div>
-          <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-800">
-            <strong>💡 Explicação:</strong> {questao.explicacao}
+          <div className="app-surface-muted rounded-2xl p-5 text-sm leading-7">
+            <strong className="app-text-accent mb-2 flex items-center gap-2"><BookOpen size={17} aria-hidden="true" />Entenda a resposta</strong>
+            <p className="app-text-muted">{questao.explicacao}</p>
           </div>
         </div>
       )}
@@ -86,9 +90,11 @@ export default function Resultado() {
   const state = location.state;
   if (!state) {
     return (
-      <div className="max-w-lg mx-auto text-center py-16">
-        <p className="text-slate-500 mb-4">Nenhum simulado encontrado.</p>
-        <Link to="/simulado" className="text-indigo-600 font-medium hover:underline">
+      <div className="app-surface app-card mx-auto max-w-lg px-6 py-16 text-center">
+        <span className="feature-icon mx-auto mb-5" aria-hidden="true"><List /></span>
+        <h2 className="mb-2 text-2xl font-extrabold">Seu próximo treino começa aqui</h2>
+        <p className="app-text-muted mb-6">Nenhum simulado encontrado.</p>
+        <Link to="/simulado" className="btn-primary min-h-12 px-6">
           Fazer um simulado
         </Link>
       </div>
@@ -101,9 +107,15 @@ export default function Resultado() {
   const desempenho = getDesempenho(pct);
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 animate-slide-up">
+    <div className="page-stack mx-auto max-w-6xl space-y-6">
+      <header>
+        <p className="eyebrow mb-2">Sessão concluída</p>
+        <h1 className="font-heading text-3xl font-extrabold tracking-tight sm:text-4xl">{desempenho.label}</h1>
+        <p className="app-text-muted mt-2 text-sm">Simulado de {materia}. Reserve um momento para revisar suas respostas.</p>
+      </header>
+      <div className="grid items-start gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
       {/* Card de resultado */}
-      <div className="app-surface app-card rounded-2xl p-8 text-center">
+      <div className="app-surface app-card p-6 sm:p-8 lg:sticky lg:top-6">
         {persistError && (
           <div className="mb-5 text-left">
             <FeedbackMessage tone="warning" title="Histórico indisponível">
@@ -111,49 +123,47 @@ export default function Resultado() {
             </FeedbackMessage>
           </div>
         )}
-        <div className={`flex items-center justify-center w-16 h-16 rounded-2xl bg-${desempenho.color}-100 mx-auto mb-4`}>
-          <Trophy size={28} className={`text-${desempenho.color}-600`} aria-hidden="true" />
+        <div className="feature-icon aqua mb-6">
+          <Trophy size={28} aria-hidden="true" />
         </div>
 
-        <h1 className="text-2xl font-bold text-slate-900 mb-1">{desempenho.label}</h1>
-        <p className="text-slate-500 text-sm mb-6">Simulado de {materia}</p>
+        <h2 className="eyebrow mb-3">Seu aproveitamento</h2>
+        <p className="app-text-accent text-6xl font-extrabold tracking-tight tabular-nums">{Math.round(pct * 100)}<span className="ml-1 text-3xl">%</span></p>
+        <p className="app-text-muted mb-6 mt-2 text-sm">{acertos} de {total} questões corretas</p>
 
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-slate-50 rounded-xl p-4">
-            <p className="text-2xl font-bold text-slate-900">{acertos}/{total}</p>
-            <p className="text-xs text-slate-500 mt-1">Acertos</p>
+        <div className="mb-5 grid grid-cols-2 gap-3">
+          <div className="stat-card app-surface-muted rounded-2xl p-4">
+            <p className="text-2xl font-extrabold tabular-nums">{acertos}/{total}</p>
+            <p className="app-text-subtle mt-1 text-xs">Acertos</p>
           </div>
-          <div className="bg-slate-50 rounded-xl p-4">
-            <p className="text-2xl font-bold text-slate-900">{Math.round(pct * 100)}%</p>
-            <p className="text-xs text-slate-500 mt-1">Aproveitamento</p>
-          </div>
-          <div className="bg-slate-50 rounded-xl p-4">
-            <p className="text-2xl font-bold text-slate-900">{pontuacao}</p>
-            <p className="text-xs text-slate-500 mt-1">Pts est. TRI</p>
+          <div className="stat-card app-surface-muted rounded-2xl p-4">
+            <p className="text-2xl font-extrabold tabular-nums">{pontuacao}</p>
+            <p className="app-text-subtle mt-1 text-xs">Pts est. TRI</p>
           </div>
         </div>
 
         {/* Barra de progresso */}
-        <div className="mb-8">
-          <div className="h-2 bg-slate-100 rounded-full overflow-hidden" role="progressbar" aria-valuenow={Math.round(pct * 100)} aria-valuemin={0} aria-valuemax={100}>
+        <div className="mb-6">
+          <div className="app-surface-muted h-2 overflow-hidden rounded-full" role="progressbar" aria-label="Aproveitamento no simulado" aria-valuenow={Math.round(pct * 100)} aria-valuemin={0} aria-valuemax={100}>
             <div
-            className={`h-full bg-${desempenho.color}-500 rounded-full transition-[width] duration-700`}
+              className="h-full rounded-full bg-gradient-to-r from-violet-600 to-cyan-500 transition-[width] duration-700"
               style={{ width: `${pct * 100}%` }}
             />
           </div>
+          <p className="app-text-subtle mt-3 text-xs leading-relaxed">A pontuação é uma estimativa simplificada e não corresponde à nota oficial do ENEM.</p>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3">
           <button
             onClick={() => navigate('/simulado')}
-            className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-xl transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="btn-primary min-h-12 w-full gap-2 px-4 text-sm"
           >
             <RotateCcw size={15} aria-hidden="true" />
             Novo simulado
           </button>
           <Link
             to="/historico"
-            className="flex-1 flex items-center justify-center gap-2 border border-slate-200 hover:border-slate-300 text-slate-700 font-medium py-2.5 rounded-xl transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="btn-secondary min-h-12 w-full gap-2 px-4 text-sm"
           >
             <BarChart2 size={15} aria-hidden="true" />
             Ver histórico
@@ -163,11 +173,12 @@ export default function Resultado() {
 
       {/* Revisão das questões */}
       {questoes && questoes.length > 0 && (
-        <div>
-          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
+        <div className="min-w-0">
+          <h2 className="section-heading mb-2 text-xl font-bold">
             Revisão das questões
           </h2>
-          <div className="space-y-2">
+          <p className="app-text-muted mb-5 text-sm">Abra uma questão para comparar sua escolha com o gabarito.</p>
+          <div className="space-y-3">
             {questoes.map((q, i) => (
               <QuestaoRevisao
                 key={q.id}
@@ -179,6 +190,7 @@ export default function Resultado() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

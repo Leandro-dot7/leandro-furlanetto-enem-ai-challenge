@@ -1,13 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import ThemeContext from './themeContext.js';
-
-const STORAGE_KEY = 'minerva-theme';
+import { readTheme, persistTheme } from './themePreference.js';
 
 function getInitialTheme() {
   if (typeof window === 'undefined') return 'light';
-  const saved = window.localStorage.getItem(STORAGE_KEY);
-  if (saved === 'light' || saved === 'dark') return saved;
-  return 'light';
+  try { return readTheme(window.localStorage); } catch { return 'light'; }
 }
 
 export function ThemeProvider({ children }) {
@@ -17,8 +14,8 @@ export function ThemeProvider({ children }) {
     document.documentElement.classList.toggle('theme-dark', theme === 'dark');
     document.documentElement.style.colorScheme = theme;
     const themeColor = document.querySelector('meta[name="theme-color"]');
-    themeColor?.setAttribute('content', theme === 'dark' ? '#0f172a' : '#eef1ee');
-    window.localStorage.setItem(STORAGE_KEY, theme);
+    themeColor?.setAttribute('content', theme === 'dark' ? '#19172f' : '#f1edf7');
+    try { persistTheme(window.localStorage, theme); } catch { /* Storage may be unavailable. */ }
   }, [theme]);
 
   const value = useMemo(() => ({

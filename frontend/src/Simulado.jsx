@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { supabase } from './lib/supabase';
 import api from './lib/api';
-import { Loader2, ChevronRight, CheckCircle, XCircle, Sparkles } from 'lucide-react';
+import { Loader2, ChevronRight, CheckCircle, XCircle, Sparkles, BookOpen, ListChecks, Target } from 'lucide-react';
 import FeedbackMessage from './components/ui/FeedbackMessage.jsx';
 
 const MATERIAS = [
@@ -29,30 +29,34 @@ function ConfigScreen({ onStart }) {
   const [numQuestoes, setNumQuestoes] = useState(5);
 
   return (
-    <div className="max-w-lg mx-auto animate-slide-up">
-      <div className="app-surface app-card rounded-2xl p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center justify-center w-11 h-11 bg-indigo-100 rounded-xl">
-            <Sparkles size={22} className="text-indigo-600" aria-hidden="true" />
-          </div>
+    <div className="page-stack mx-auto max-w-5xl space-y-6">
+      <header>
+        <p className="eyebrow mb-2">Prática que ensina</p>
+        <h1 className="font-heading text-3xl font-extrabold tracking-tight sm:text-4xl">Novo Simulado</h1>
+        <p className="app-text-muted mt-2 text-sm">Escolha seu foco e transforme cada questão em aprendizado.</p>
+      </header>
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <div className="app-surface app-card p-5 sm:p-8">
+        <div className="mb-8 flex items-center gap-3">
+          <span className="feature-icon" aria-hidden="true"><ListChecks size={24} /></span>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Novo Simulado</h1>
-            <p className="text-sm text-slate-500">Questões geradas por IA no estilo ENEM</p>
+            <h2 className="section-heading text-xl font-bold">Monte sua sessão</h2>
+            <p className="app-text-muted mt-1 text-sm">No seu ritmo, com o foco que você precisa.</p>
           </div>
         </div>
 
-        <div className="space-y-5">
+        <div className="space-y-8">
           {/* Área do conhecimento */}
           <div>
-            <label htmlFor="materia" className="block text-sm font-medium text-slate-700 mb-2">
-              Área do conhecimento
+            <label htmlFor="materia" className="mb-3 block text-sm font-bold">
+              <span className="app-text-accent mr-2">01</span> Área do conhecimento
             </label>
             <select
               id="materia"
               name="materia"
               value={materia}
               onChange={(e) => setMateria(e.target.value)}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-[background-color,border-color,box-shadow]"
+              className="app-surface-muted min-h-14 w-full rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-500"
             >
               {MATERIAS.map((m) => (
                 <option key={m.value} value={m.value}>{m.label}</option>
@@ -62,40 +66,57 @@ function ConfigScreen({ onStart }) {
 
           {/* Número de questões */}
           <div>
-            <p className="block text-sm font-medium text-slate-700 mb-2" id="num-label">
-              Quantidade de questões
+            <p className="mb-3 block text-sm font-bold" id="num-label">
+              <span className="app-text-accent mr-2">02</span> Quantidade de questões
             </p>
-            <div className="flex gap-3" role="group" aria-labelledby="num-label">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3" role="group" aria-labelledby="num-label">
               {NUM_OPCOES.map((n) => (
                 <button
                   key={n}
                   type="button"
                   onClick={() => setNumQuestoes(n)}
                   aria-pressed={numQuestoes === n}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-[background-color,border-color,box-shadow] focus:outline-none focus:ring-2 focus:ring-indigo-500
+                  className={`rounded-2xl border px-2 py-5 text-center transition-[background-color,border-color,box-shadow] focus-visible:ring-2 focus-visible:ring-violet-500
                     ${numQuestoes === n
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-indigo-300'
+                      ? 'border-violet-600 bg-violet-700 text-white shadow-sm'
+                      : 'app-surface-muted hover:border-violet-400'
                     }`}
                 >
-                  {n} questões
+                  <span className="block text-3xl font-extrabold tabular-nums">{n}</span>
+                  <span className="mt-1 block text-xs">questões</span>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-sm text-indigo-700">
-            💡 A IA vai criar questões inéditas no estilo ENEM, com gabarito e explicação detalhada de cada resposta.
+          <div className="app-surface-muted flex items-start gap-3 rounded-2xl p-4 text-sm leading-relaxed">
+            <Sparkles size={18} className="app-text-accent mt-0.5 shrink-0" aria-hidden="true" />
+            <p className="app-text-muted">Questões geradas por IA no estilo ENEM, com gabarito e explicação para entender cada resposta.</p>
           </div>
 
           <button
             onClick={() => onStart(materia, numQuestoes)}
-            className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="btn-primary min-h-12 w-full gap-2 px-4 py-3"
           >
             <Sparkles size={16} aria-hidden="true" />
             Gerar Simulado com IA
           </button>
         </div>
+      </div>
+      <aside className="space-y-4">
+        <div className="app-surface app-card p-6">
+          <span className="feature-icon aqua mb-5" aria-hidden="true"><Target size={24} /></span>
+          <p className="eyebrow mb-2">Sua sessão</p>
+          <h2 className="text-xl font-bold">{materia}</h2>
+          <p className="app-text-muted mt-2 text-sm">{numQuestoes} questões para praticar</p>
+          <ol className="app-text-muted mt-6 space-y-4 border-t border-[var(--app-border)] pt-5 text-sm leading-relaxed">
+            <li><span className="app-text-accent font-bold">1.</span> Leia e escolha uma alternativa.</li>
+            <li><span className="app-text-accent font-bold">2.</span> Confirme e entenda a explicação.</li>
+            <li><span className="app-text-accent font-bold">3.</span> Revise seu resultado ao terminar.</li>
+          </ol>
+        </div>
+        <p className="app-text-subtle px-2 text-xs leading-relaxed">Reserve um momento para ler com calma. A revisão também faz parte do treino.</p>
+      </aside>
       </div>
     </div>
   );
@@ -104,13 +125,14 @@ function ConfigScreen({ onStart }) {
 // Tela de loading
 function LoadingScreen({ materia }) {
   return (
-    <div className="max-w-lg mx-auto">
-      <div className="app-surface app-card rounded-2xl p-12 text-center" role="status" aria-live="polite" aria-busy="true">
-        <div className="flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-2xl mx-auto mb-4">
-          <Loader2 size={28} className="text-indigo-600 animate-spin" />
+    <div className="mx-auto max-w-2xl py-8 sm:py-16">
+      <div className="app-surface app-card px-6 py-12 text-center sm:p-16" role="status" aria-live="polite" aria-busy="true">
+        <div className="feature-icon mx-auto mb-6">
+          <Loader2 size={28} className="animate-spin" aria-hidden="true" />
         </div>
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">Gerando seu simulado…</h2>
-        <p className="text-sm text-slate-500">
+        <p className="eyebrow mb-3">Preparando sua sessão</p>
+        <h2 className="mb-3 text-2xl font-extrabold tracking-tight">Gerando seu simulado…</h2>
+        <p className="app-text-muted text-sm leading-7">
           A IA está criando questões de <strong>{materia}</strong> no estilo ENEM.
           <br />Isso pode levar alguns segundos.
         </p>
@@ -139,27 +161,32 @@ function QuestaoScreen({ questao, totalQuestoes, onResponder }) {
   const gabarito = questao.gabarito;
 
   return (
-    <div className="max-w-2xl mx-auto animate-slide-up">
-      <div className="app-surface app-card rounded-2xl p-6 lg:p-8">
+    <div className="page-stack mx-auto max-w-4xl space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div><p className="eyebrow mb-1">Sessão de prática</p><h2 className="text-2xl font-extrabold tracking-tight">Uma questão de cada vez</h2></div>
+        <span className="app-surface inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold"><BookOpen size={16} className="app-text-accent" aria-hidden="true" />ENEM</span>
+      </div>
+      <div className="app-surface app-card overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <span className="text-sm font-medium text-slate-500">
+        <div className="app-surface-muted flex flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-8">
+          <span className="text-sm font-bold">
             Questão {questao.id} de {totalQuestoes}
           </span>
-          <span className="text-xs bg-indigo-100 text-indigo-700 font-medium px-3 py-1 rounded-full">
-            ENEM
+          <span className="app-text-subtle text-xs">
+            {respondida ? 'Confira a explicação antes de seguir' : 'Selecione uma alternativa'}
           </span>
         </div>
 
+        <div className="p-5 sm:p-8 lg:p-10">
         {/* Enunciado */}
-        <div className="mb-6">
-          <p className="text-slate-800 leading-relaxed text-sm lg:text-base">{questao.enunciado}</p>
+        <div className="mb-8">
+          <p className="whitespace-pre-line text-base leading-8 sm:text-lg">{questao.enunciado}</p>
         </div>
 
         {/* Alternativas */}
-        <div className="space-y-2.5 mb-6" role="radiogroup" aria-label="Alternativas">
+        <div className="mb-8 space-y-3" role="radiogroup" aria-label="Alternativas">
           {alternativas.map(([letra_op, texto]) => {
-            let classes = 'flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-[background-color,border-color,box-shadow] text-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2';
+            let classes = 'flex items-start gap-3 p-4 sm:p-5 rounded-2xl border cursor-pointer transition-[background-color,border-color,box-shadow] text-sm leading-relaxed focus-within:ring-2 focus-within:ring-violet-500 focus-within:ring-offset-2';
 
             if (respondida) {
               if (letra_op === gabarito) {
@@ -167,12 +194,12 @@ function QuestaoScreen({ questao, totalQuestoes, onResponder }) {
               } else if (letra_op === selecionada && letra_op !== gabarito) {
                 classes += ' bg-red-50 border-red-400 text-red-800';
               } else {
-                classes += ' bg-slate-50 border-slate-200 text-slate-500';
+                classes += ' app-surface-muted app-text-subtle';
               }
             } else if (selecionada === letra_op) {
-              classes += ' bg-indigo-50 border-indigo-500 text-indigo-900';
+              classes += ' app-surface-muted border-violet-500 ring-2 ring-violet-500';
             } else {
-              classes += ' bg-slate-50 border-slate-200 text-slate-700 hover:border-indigo-300 hover:bg-indigo-50/50';
+              classes += ' app-surface hover:border-violet-400';
             }
 
             return (
@@ -185,17 +212,17 @@ function QuestaoScreen({ questao, totalQuestoes, onResponder }) {
                   disabled={respondida}
                   onChange={() => setSelecionada(letra_op)}
                 />
-                <span className={`flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border
+                <span className={`flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl text-xs font-bold border
                   ${respondida && letra_op === gabarito ? 'bg-emerald-500 border-emerald-500 text-white' :
                     respondida && letra_op === selecionada ? 'bg-red-500 border-red-500 text-white' :
-                    selecionada === letra_op ? 'bg-indigo-600 border-indigo-600 text-white' :
-                    'bg-white border-slate-300 text-slate-600'
+                    selecionada === letra_op ? 'bg-violet-700 border-violet-700 text-white' :
+                    'app-surface-muted app-text-muted'
                   }`}
                   aria-hidden="true"
                 >
                   {letra_op}
                 </span>
-                <span className="flex-1">{texto}</span>
+                <span className="min-w-0 flex-1 pt-1">{texto}</span>
                 {respondida && letra_op === gabarito && <CheckCircle size={16} className="text-emerald-500 flex-shrink-0 mt-0.5" />}
                 {respondida && letra_op === selecionada && letra_op !== gabarito && <XCircle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />}
               </label>
@@ -205,36 +232,37 @@ function QuestaoScreen({ questao, totalQuestoes, onResponder }) {
 
         {/* Explicação (após responder) */}
         {respondida && (
-          <div className={`p-4 rounded-xl mb-5 text-sm leading-relaxed border
+          <div className={`p-5 rounded-2xl mb-6 text-sm leading-7 border
             ${letra === gabarito
               ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
               : 'bg-blue-50 border-blue-200 text-blue-800'
             }`}
           >
-            <strong>{letra === gabarito ? '✅ Correto! ' : `❌ A resposta era ${gabarito}. `}</strong>
+            <strong className="mb-2 block">{letra === gabarito ? 'Correto!' : `A resposta era ${gabarito}.`}</strong>
             {questao.explicacao}
           </div>
         )}
 
         {/* Botões */}
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3 border-t border-[var(--app-border)] pt-5">
           {!respondida ? (
             <button
               onClick={handleResponder}
               disabled={!selecionada}
-              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium px-5 py-2.5 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-sm"
+              className="btn-primary min-h-12 w-full gap-2 px-5 text-sm disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
               Confirmar resposta
             </button>
           ) : (
             <button
               onClick={handleProxima}
-              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-sm"
+              className="btn-primary min-h-12 w-full gap-2 px-5 text-sm sm:w-auto"
             >
               {questao.id === totalQuestoes ? 'Ver resultado' : 'Próxima questão'}
               <ChevronRight size={16} aria-hidden="true" />
             </button>
           )}
+        </div>
         </div>
       </div>
     </div>
@@ -332,7 +360,7 @@ export default function Simulado() {
 
   return (
     <>
-      {erro && <div className="max-w-lg mx-auto mb-4"><FeedbackMessage tone="danger" title="Não foi possível gerar o simulado">{erro}</FeedbackMessage></div>}
+      {erro && <div className="mx-auto mb-4 max-w-5xl"><FeedbackMessage tone="danger" title="Não foi possível gerar o simulado">{erro}</FeedbackMessage></div>}
       <ConfigScreen onStart={handleStart} />
     </>
   );

@@ -2,14 +2,14 @@ import React from 'react';
 
 export default function PageHeader({ eyebrow, title, description, actions }) {
   return (
-    <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
         {eyebrow && (
-          <p className="app-text-accent mb-2 text-xs font-semibold uppercase tracking-[0.16em]">
+          <p className="eyebrow app-text-accent mb-3">
             {eyebrow}
           </p>
         )}
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+        <h1 className="text-3xl font-extrabold tracking-[-0.045em] text-slate-900 sm:text-4xl leading-tight">
           {title}
         </h1>
         {description && (

@@ -6,7 +6,8 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
-import { GraduationCap, User, Mail, Lock } from 'lucide-react';
+import { User, Mail, Lock } from 'lucide-react';
+import AuthLayout from './components/AuthLayout.jsx';
 import FeedbackMessage from './components/ui/FeedbackMessage.jsx';
 
 export default function Cadastro() {
@@ -44,59 +45,11 @@ export default function Cadastro() {
   }
 
   return (
-    <div className="min-h-screen flex">
-      {/* Painel esquerdo — branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-700 flex-col items-center justify-center p-12 text-white">
-        <div className="max-w-sm">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="flex items-center justify-center w-12 h-12 bg-white/20 rounded-2xl backdrop-blur-sm">
-              <GraduationCap size={28} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">Minerva</h1>
-              <p className="text-indigo-200 text-sm">Plataforma ENEM</p>
-            </div>
-          </div>
+    <AuthLayout>
+      <h2 className="auth-title">Comece seu<br /><span>próximo ciclo.</span></h2>
+      <p className="auth-form-description">Crie sua conta e encontre seu ritmo de estudo.</p>
 
-          <h2 className="text-3xl font-bold mb-4 leading-tight">
-            Junte-se a milhares de estudantes preparados.
-          </h2>
-          <p className="text-indigo-200 text-lg leading-relaxed mb-8">
-            Crie sua conta gratuita e comece a estudar com inteligência artificial hoje mesmo.
-          </p>
-
-          <div className="space-y-3">
-            {[
-              '🎯 Simulados adaptados ao seu nível',
-              '📊 Acompanhe sua evolução com gráficos',
-              '🤖 IA que nunca se cansa de explicar',
-            ].map((item) => (
-              <div key={item} className="flex items-center gap-2 text-indigo-100">
-                <span>{item}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Painel direito — formulário */}
-      <div className="app-surface flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-sm">
-          {/* Logo mobile */}
-          <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <GraduationCap size={24} className="text-indigo-600" />
-            <span className="text-xl font-bold text-slate-900">Minerva ENEM</span>
-          </div>
-
-          <h2 className="text-2xl font-bold text-slate-900 mb-1">Criar sua conta</h2>
-          <p className="text-slate-500 text-sm mb-8">
-            Já tem conta?{' '}
-            <Link to="/" className="text-indigo-600 font-medium hover:text-indigo-700 underline-offset-2 hover:underline">
-              Faça login
-            </Link>
-          </p>
-
-          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
             {/* Nome */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -128,10 +81,10 @@ export default function Cadastro() {
                 <input
                   id="email"
                   name="email"
-                  type="email"
+                  type="email" spellCheck={false}
                   autoComplete="email"
                   inputMode="email"
-                  placeholder="seu@email.com"
+                  placeholder="exemplo@email.com…"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -170,7 +123,7 @@ export default function Cadastro() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-sm"
+              className="btn-primary w-full"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -185,12 +138,9 @@ export default function Cadastro() {
               )}
             </button>
 
-            <p className="text-xs text-slate-400 text-center">
-              Ao criar uma conta, você concorda com nossos Termos de Uso.
-            </p>
+            <p className="text-xs app-text-subtle text-center">Seu progresso fica salvo na sua conta.</p>
           </form>
-        </div>
-      </div>
-    </div>
+      <p className="auth-form-footer">Já tem conta? <Link to="/" className="app-text-accent font-semibold hover:underline">Entrar na Minerva</Link></p>
+    </AuthLayout>
   );
 }

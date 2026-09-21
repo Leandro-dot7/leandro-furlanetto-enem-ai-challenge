@@ -10,14 +10,14 @@ import React, { useState } from 'react';
 import { useAuth } from './context/AuthContext';
 import { supabase } from './lib/supabase';
 import api from './lib/api';
-import { FileText, Loader2, Send, RotateCcw, AlertCircle, Sparkles, RefreshCw } from 'lucide-react';
+import { FileText, Loader2, Send, RotateCcw, AlertCircle, Sparkles, RefreshCw, PenLine, CheckCircle } from 'lucide-react';
 
 const TEMA_SEMANA = 'Desafios para a preservação do patrimônio histórico no Brasil';
 
 const COMPETENCIAS_INFO = {
   C1: { titulo: 'Competência I', subtitulo: 'Domínio da norma culta', cor: 'blue' },
   C2: { titulo: 'Competência II', subtitulo: 'Compreensão e proposta temática', cor: 'violet' },
-  C3: { titulo: 'Competência III', subtitulo: 'Seleção de argumentos', cor: 'amber' },
+  C3: { titulo: 'Competência III', subtitulo: 'Seleção de argumentos', cor: 'cyan' },
   C4: { titulo: 'Competência IV', subtitulo: 'Mecanismos linguísticos', cor: 'emerald' },
   C5: { titulo: 'Competência V', subtitulo: 'Proposta de intervenção', cor: 'rose' },
 };
@@ -26,17 +26,13 @@ const COMPETENCIAS_INFO = {
 function NotaGauge({ nota, cor }) {
   const pct = Math.min((nota / 200) * 100, 100);
   const corMap = {
-    blue: 'bg-blue-500', violet: 'bg-violet-500', amber: 'bg-amber-500',
+    blue: 'bg-blue-500', violet: 'bg-violet-500', cyan: 'bg-cyan-500',
     emerald: 'bg-emerald-500', rose: 'bg-rose-500',
   };
-  const textMap = {
-    blue: 'text-blue-700', violet: 'text-violet-700', amber: 'text-amber-700',
-    emerald: 'text-emerald-700', rose: 'text-rose-700',
-  };
   return (
-    <div className="flex items-center gap-2">
-      <span className={`text-lg font-bold ${textMap[cor]} w-10`}>{nota}</span>
-      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+    <div className="flex items-center gap-3">
+      <span className="app-text-accent w-12 text-2xl font-extrabold tabular-nums">{nota}</span>
+      <div className="app-surface-muted h-2 flex-1 overflow-hidden rounded-full">
         <div
           className={`h-full ${corMap[cor]} rounded-full transition-[width] duration-700`}
           style={{ width: `${pct}%` }}
@@ -46,7 +42,7 @@ function NotaGauge({ nota, cor }) {
           aria-valuemax={200}
         />
       </div>
-      <span className="text-xs text-slate-400 w-10 text-right">/200</span>
+      <span className="app-text-subtle w-10 text-right text-xs">/200</span>
     </div>
   );
 }
@@ -57,38 +53,41 @@ function ResultadoCorrecao({ resultado, onNova }) {
   const pctTotal = (resultado.notaTotal / totalMax) * 100;
 
   let badge = '';
-  if (resultado.notaTotal >= 900) badge = '🏆 Nível A — Excelente';
-  else if (resultado.notaTotal >= 700) badge = '✨ Nível B — Muito bom';
-  else if (resultado.notaTotal >= 500) badge = '📚 Nível C — Bom';
-  else badge = '💪 Nível D — Precisa melhorar';
+  if (resultado.notaTotal >= 900) badge = 'Nível A · Excelente';
+  else if (resultado.notaTotal >= 700) badge = 'Nível B · Muito bom';
+  else if (resultado.notaTotal >= 500) badge = 'Nível C · Bom';
+  else badge = 'Nível D · Precisa melhorar';
 
   return (
-    <div className="space-y-5 animate-slide-up">
+    <div className="page-stack space-y-6">
+      <header>
+        <p className="eyebrow mb-2">Seu texto, próximo passo</p>
+        <h1 className="font-heading text-3xl font-extrabold tracking-tight sm:text-4xl">Resultado da redação</h1>
+        <p className="app-text-muted mt-2">Veja o que funcionou e onde concentrar sua próxima revisão.</p>
+      </header>
+      <div className="grid items-start gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
       {/* Nota geral */}
-      <div className="app-surface app-card rounded-2xl border border-slate-200 p-6">
+      <div className="app-surface app-card p-6 lg:sticky lg:top-6">
         {resultado.persistError && (
           <div role="alert" className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
             Redação corrigida, mas não foi possível salvar no histórico: {resultado.persistError}
           </div>
         )}
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">Resultado da Redação</h2>
-            <p className="text-slate-500 text-sm">{badge}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-3xl font-bold text-indigo-600">{resultado.notaTotal}</p>
-            <p className="text-xs text-slate-400">de 1000 pontos</p>
-          </div>
+        <span className="feature-icon mb-5" aria-hidden="true"><FileText size={24} /></span>
+        <h2 className="eyebrow">Nota total</h2>
+        <div className="mb-5 mt-3">
+          <p className="app-text-accent text-6xl font-extrabold tracking-tight tabular-nums">{resultado.notaTotal}</p>
+          <p className="app-text-subtle mt-1 text-sm">de 1000 pontos</p>
+          <p className="mt-4 text-sm font-semibold">{badge}</p>
         </div>
-        <div className="h-3 bg-slate-100 rounded-full overflow-hidden" role="progressbar" aria-valuenow={resultado.notaTotal} aria-valuemin={0} aria-valuemax={1000}>
+        <div className="app-surface-muted h-2 overflow-hidden rounded-full" role="progressbar" aria-label="Nota total da redação" aria-valuenow={resultado.notaTotal} aria-valuemin={0} aria-valuemax={1000}>
           <div
-            className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-[width] duration-700"
+            className="h-full rounded-full bg-gradient-to-r from-violet-600 to-cyan-500 transition-[width] duration-700"
             style={{ width: `${pctTotal}%` }}
           />
         </div>
         {resultado.comentarioGeral && (
-          <p className="mt-4 text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-xl p-4">
+          <p className="app-text-muted mt-6 border-t border-[var(--app-border)] pt-5 text-sm leading-7">
             {resultado.comentarioGeral}
           </p>
         )}
@@ -96,24 +95,25 @@ function ResultadoCorrecao({ resultado, onNova }) {
 
       {/* Competências */}
       <div>
-        <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
-          Avaliação por competência (Grade INEP)
+        <h3 className="section-heading mb-4 text-xl font-bold">
+          Avaliação por competência <span className="app-text-subtle text-sm font-normal">(Grade INEP)</span>
         </h3>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {Object.entries(COMPETENCIAS_INFO).map(([key, info]) => {
             const comp = resultado.competencias?.[key];
             if (!comp) return null;
             return (
-              <div key={key} className="app-surface app-card rounded-2xl border border-slate-200 p-5">
-                <div className="flex items-center justify-between mb-2">
+              <div key={key} className="app-surface app-card p-5 sm:p-6">
+                <div className="mb-4 flex items-center gap-3">
+                  <span className="app-surface-muted app-text-accent flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xs font-extrabold">{key}</span>
                   <div>
-                    <p className="font-semibold text-slate-900 text-sm">{info.titulo}</p>
-                    <p className="text-xs text-slate-500">{info.subtitulo}</p>
+                    <p className="font-bold">{info.titulo}</p>
+                    <p className="app-text-muted text-sm">{info.subtitulo}</p>
                   </div>
                 </div>
                 <NotaGauge nota={comp.nota} cor={info.cor} />
                 {comp.feedback && (
-                  <p className="mt-3 text-xs text-slate-600 leading-relaxed">
+                  <p className="app-text-muted mt-4 text-sm leading-7">
                     {comp.feedback}
                   </p>
                 )}
@@ -122,10 +122,11 @@ function ResultadoCorrecao({ resultado, onNova }) {
           })}
         </div>
       </div>
+      </div>
 
       <button
         onClick={onNova}
-        className="flex items-center justify-center gap-2 w-full border border-slate-200 hover:border-indigo-300 text-slate-700 hover:text-indigo-700 font-medium py-3 rounded-xl transition-[border-color,color,box-shadow] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        className="btn-secondary min-h-12 w-full gap-2 text-sm"
       >
         <RotateCcw size={15} aria-hidden="true" />
         Corrigir nova redação
@@ -200,44 +201,46 @@ export default function Redacao() {
 
   if (resultado) {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="mx-auto max-w-6xl">
         <ResultadoCorrecao resultado={resultado} onNova={() => { setResultado(null); setTexto(''); }} />
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto animate-slide-up">
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-          <FileText size={22} className="text-amber-500" aria-hidden="true" />
-          Correção de Redação
-        </h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Escreva sua redação e receba avaliação pelas 5 competências oficiais do ENEM
+    <div className="page-stack mx-auto max-w-6xl space-y-6">
+      <header>
+        <p className="eyebrow mb-2">Laboratório de escrita</p>
+        <h1 className="font-heading text-3xl font-extrabold tracking-tight sm:text-4xl">Correção de Redação</h1>
+        <p className="app-text-muted mt-2 max-w-2xl text-sm leading-relaxed">
+          Dê espaço às suas ideias. Escreva e receba uma avaliação pelas 5 competências do ENEM.
         </p>
-      </div>
+      </header>
 
-      <form onSubmit={handleEnviar} className="space-y-4">
+      <form onSubmit={handleEnviar} className="grid items-start gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
+        <div className="space-y-4">
         {/* Tema */}
-        <div className="app-surface app-card rounded-2xl border border-slate-200 p-5">
-          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-            <label htmlFor="redacao-tema" className="text-sm font-semibold text-slate-700">Proposta Temática</label>
-            <div className="flex items-center gap-2">
+        <div className="app-surface app-card p-5 sm:p-6">
+          <div className="mb-5 flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <span className="feature-icon" aria-hidden="true"><FileText size={22} /></span>
+              <div><p className="eyebrow mb-1">01 · Inspire-se</p><label htmlFor="redacao-tema" className="font-bold">Proposta temática</label></div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={handleGerarTema}
                 disabled={gerandoTema}
-                className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 font-medium px-3 py-1.5 rounded-lg transition-[background-color,color,box-shadow] focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="btn-secondary min-h-11 w-full gap-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {gerandoTema ? (
                   <>
-                    <RefreshCw size={12} className="animate-spin" />
+                    <RefreshCw size={16} className="animate-spin" aria-hidden="true" />
                     Gerando tema…
                   </>
                 ) : (
                   <>
-                    <Sparkles size={12} />
+                    <Sparkles size={16} aria-hidden="true" />
                     Sugerir tema com IA
                   </>
                 )}
@@ -245,7 +248,7 @@ export default function Redacao() {
               <button
                 type="button"
                 onClick={() => setTemaCustom(!temaCustom)}
-                className="text-xs text-slate-500 hover:text-slate-700 font-medium focus:outline-none focus-visible:underline"
+                className="app-text-accent min-h-11 w-full rounded-xl px-3 text-sm font-semibold underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-violet-500"
               >
                 {temaCustom ? 'Usar tema gerado' : 'Digitar outro tema'}
               </button>
@@ -261,34 +264,36 @@ export default function Redacao() {
               value={tema}
               onChange={(e) => setTema(e.target.value)}
               placeholder="Digite o tema da sua redação…"
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-[background-color,border-color,box-shadow]"
+              className="app-surface-muted w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
           ) : (
-            <div className="bg-amber-50/80 border border-amber-200 rounded-xl px-4 py-3.5 space-y-1.5">
+            <div className="app-surface-muted space-y-3 rounded-2xl p-5">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-amber-800 uppercase tracking-wider">
-                  📌 {eixoTematico ? `Eixo: ${eixoTematico}` : 'Tema de Redação'}
+                <p className="app-text-accent text-xs font-bold uppercase tracking-wider">
+                  {eixoTematico ? `Eixo: ${eixoTematico}` : 'Tema de Redação'}
                 </p>
               </div>
-              <p className="text-sm font-bold text-slate-900 leading-snug">{tema}</p>
+              <p className="text-lg font-bold leading-relaxed">{tema}</p>
               {contexto && (
-                <p className="text-xs text-slate-600 leading-relaxed pt-1 border-t border-amber-200/60 mt-1">
-                  <strong>💡 Contexto motivador:</strong> {contexto}
+                <p className="app-text-muted border-t border-[var(--app-border)] pt-3 text-sm leading-relaxed">
+                  <strong>Contexto motivador:</strong> {contexto}
                 </p>
               )}
             </div>
           )}
         </div>
+        <aside className="app-surface-muted rounded-2xl p-5">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-bold"><CheckCircle size={16} className="app-text-accent" aria-hidden="true" />Antes de enviar</h2>
+          <p className="app-text-muted text-sm leading-7">Apresente sua tese, desenvolva os argumentos e conclua com uma proposta de intervenção. Revise os conectivos entre os parágrafos.</p>
+        </aside>
+        </div>
 
+        <div className="min-w-0 space-y-4">
         {/* Texto */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
-          <div className="flex items-center justify-between mb-2">
-            <label htmlFor="redacao-texto" className="text-sm font-semibold text-slate-700">
-              Sua redação
-            </label>
-            <span className="text-xs text-slate-400">
-              {palavras} palavras • {charCount} caracteres
-            </span>
+        <div className="app-surface app-card p-5 sm:p-7">
+          <div className="mb-5 flex items-center gap-3">
+            <span className="feature-icon aqua" aria-hidden="true"><PenLine size={22} /></span>
+            <div><p className="eyebrow mb-1">02 · Desenvolva suas ideias</p><label htmlFor="redacao-texto" className="text-lg font-bold">Sua redação</label></div>
           </div>
           <textarea
             id="redacao-texto"
@@ -299,10 +304,13 @@ export default function Redacao() {
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
             placeholder="Cole ou digite sua redação aqui. Divida em introdução, desenvolvimento e conclusão (mínimo de 50 caracteres)…"
-            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 leading-relaxed placeholder-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-[background-color,border-color,box-shadow] resize-none"
+            className="app-surface-muted min-h-[26rem] w-full resize-y rounded-2xl px-4 py-5 text-base leading-8 placeholder:text-[var(--app-text-subtle)] focus:outline-none focus:ring-2 focus:ring-violet-500 sm:px-6"
           />
+          <div className="app-text-subtle mt-3 flex flex-wrap justify-between gap-2 text-xs tabular-nums">
+            <span>{palavras} palavras</span><span>{charCount} caracteres · mínimo de 50</span>
+          </div>
           {charCount > 0 && charCount < 50 && (
-            <p className="text-xs text-amber-600 mt-1.5">
+            <p className="mt-3 rounded-xl bg-amber-50/80 p-3 text-xs text-amber-800">
               Mínimo de 50 caracteres para avaliação ({50 - charCount} restantes)
             </p>
           )}
@@ -319,20 +327,21 @@ export default function Redacao() {
         <button
           type="submit"
           disabled={loading || charCount < 50}
-          className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+          className="btn-primary min-h-12 w-full gap-2 px-4 py-3 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? (
             <>
-              <Loader2 size={16} className="animate-spin" />
+              <Loader2 size={16} className="shrink-0 animate-spin" aria-hidden="true" />
               <span>Avaliando com grade oficial do ENEM…</span>
             </>
           ) : (
             <>
-              <Send size={16} />
+              <Send size={16} aria-hidden="true" />
               <span>Enviar para correção</span>
             </>
           )}
         </button>
+        </div>
       </form>
     </div>
   );

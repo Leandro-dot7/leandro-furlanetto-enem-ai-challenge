@@ -3,7 +3,7 @@
  * A resposta do modelo Ã© renderizada por TutorMarkdown, sem HTML bruto.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { AlertCircle, BrainCircuit, Loader2, RotateCcw, Send, Trash2, User, X } from 'lucide-react';
+import { AlertCircle, ArrowUpRight, BrainCircuit, Loader2, RotateCcw, Send, Trash2, User, X } from 'lucide-react';
 import api from './lib/api';
 import FeedbackMessage from './components/ui/FeedbackMessage';
 import TutorMarkdown from './components/tutor/TutorMarkdown';
@@ -11,7 +11,7 @@ import { useAuth } from './context/AuthContext';
 
 const WELCOME = {
   role: 'model',
-  text: 'Olá! Sou o **Tutor ENEM** 🎓, seu assistente de estudos especializado. Estou aqui para tirar suas dúvidas sobre qualquer conteúdo das 4 áreas do ENEM — Linguagens, Ciências Humanas, Ciências da Natureza e Matemática.\n\nComo posso te ajudar hoje?',
+  text: 'Olá! Sou o **Tutor ENEM**, seu assistente de estudos. Vamos explorar Linguagens, Ciências Humanas, Ciências da Natureza e Matemática juntos.\n\nQual dúvida você quer resolver hoje?',
 };
 
 const SUGGESTIONS = [
@@ -25,22 +25,22 @@ function MessageBubble({ msg }) {
   const isUser = msg.role === 'user';
 
   return (
-    <div className={`flex min-w-0 gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+    <div className={`flex min-w-0 gap-2 sm:gap-4 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
       <div
-        className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${isUser ? 'bg-indigo-500' : 'bg-violet-600'}`}
+        className={`mt-1 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${isUser ? 'app-surface-muted app-text-muted' : 'bg-violet-600 text-white'}`}
         aria-hidden="true"
       >
         {isUser ? <User size={14} aria-hidden="true" /> : <BrainCircuit size={14} aria-hidden="true" />}
       </div>
 
-      <div className={`flex min-w-0 max-w-[82%] flex-col ${isUser ? 'items-end' : 'items-start'}`}>
-        <span className="mb-1 px-1 text-xs text-slate-400">
+      <div className={`flex min-w-0 max-w-[calc(100%-2.75rem)] flex-col sm:max-w-[88%] ${isUser ? 'items-end' : 'items-start'}`}>
+        <span className="app-text-subtle mb-2 px-1 text-xs font-semibold">
           {isUser ? 'Você' : 'Tutor ENEM'}
         </span>
         <div
-          className={`min-w-0 rounded-2xl px-4 py-3 text-sm leading-relaxed ${isUser
-            ? 'rounded-tr-sm bg-indigo-600 text-white'
-            : 'app-surface rounded-tl-sm shadow-sm'
+          className={`min-w-0 max-w-full rounded-2xl px-4 py-4 text-sm leading-relaxed sm:px-5 ${isUser
+            ? 'rounded-tr-sm bg-violet-700 text-white'
+            : 'app-surface rounded-tl-sm'
           }`}
         >
           {msg.loading ? (
@@ -202,34 +202,32 @@ export default function TutorIA() {
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-8rem)] min-h-0 max-w-4xl flex-col lg:h-[calc(100vh-4rem)]">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+    <div className="mx-auto flex min-h-[36rem] max-w-6xl flex-col gap-5 lg:h-[calc(100dvh-4rem)] lg:min-h-[38rem]">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-900">
-            <BrainCircuit size={22} className="text-violet-600" aria-hidden="true" />
-            Tutor ENEM
-          </h1>
-          <p className="app-text-muted text-sm">IA especializada exclusivamente no ENEM</p>
+          <p className="eyebrow mb-2">Aprender em conversa</p>
+          <h1 className="font-heading text-3xl font-extrabold tracking-tight sm:text-4xl">Tutor ENEM</h1>
+          <p className="app-text-muted mt-2 text-sm">Uma dúvida de cada vez. Um passo a mais no seu aprendizado.</p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <button
             type="button"
             onClick={handleReset}
             disabled={loading || clearLoading}
-            className="app-surface inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium app-text-muted transition-[border-color,color,box-shadow] hover:border-indigo-300 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-secondary min-h-11 gap-2 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Iniciar nova conversa"
           >
-            <RotateCcw size={12} aria-hidden="true" />
+            <RotateCcw size={16} aria-hidden="true" />
             Nova conversa
           </button>
           <button
             type="button"
             onClick={() => { setClearError(''); setClearDialogOpen(true); }}
             disabled={messages.length <= 1 || loading || clearLoading || restoring}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition-[background-color,border-color,color,box-shadow] hover:border-red-300 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-secondary min-h-11 gap-2 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Limpar histórico do Tutor"
           >
-            <Trash2 size={12} aria-hidden="true" />
+            <Trash2 size={16} aria-hidden="true" />
             Limpar histórico
           </button>
         </div>
@@ -237,35 +235,29 @@ export default function TutorIA() {
 
       {feedback && <FeedbackMessage tone={feedback.tone}>{feedback.children}</FeedbackMessage>}
 
+      <div className="grid min-h-0 flex-1 gap-5 lg:grid-cols-[minmax(0,1fr)_15rem]">
+      <div className="app-surface app-card flex min-h-0 min-w-0 flex-col overflow-hidden">
+      <div className="flex items-center gap-3 border-b border-[var(--app-border)] px-4 py-4 sm:px-6">
+        <span className="feature-icon" aria-hidden="true"><BrainCircuit size={22} /></span>
+        <div>
+          <h2 className="text-sm font-bold">Seu espaço de estudo</h2>
+          <p className="app-text-subtle text-xs">{restoring ? 'Recuperando sua conversa…' : 'Conteúdos e estratégias para o ENEM'}</p>
+        </div>
+      </div>
       <div
-        className="app-surface min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-2xl p-4 shadow-sm sm:p-6"
+        className="app-surface-muted min-h-[18rem] flex-1 overflow-y-auto overscroll-contain p-3 sm:p-6 lg:min-h-0"
         role="log"
         aria-label="Conversa com o Tutor ENEM"
         aria-live="polite"
         aria-relevant="additions"
       >
-        <div className="space-y-5">
+        <div className="space-y-7">
           {messages.map((msg, index) => <MessageBubble key={`${msg.role}-${index}`} msg={msg} />)}
           <div ref={bottomRef} />
         </div>
       </div>
 
-      {messages.length === 1 && (
-        <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Perguntas sugeridas">
-          {SUGGESTIONS.map((suggestion) => (
-            <button
-              type="button"
-              key={suggestion}
-              onClick={() => sendMessage(suggestion)}
-              className="app-surface rounded-xl px-3 py-1.5 text-xs app-text-muted transition-[border-color,color,box-shadow] hover:border-indigo-300 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="mt-3 flex gap-2" aria-label="Enviar mensagem para o Tutor">
+      <form onSubmit={handleSubmit} className="flex gap-2 p-3 sm:p-4" aria-label="Enviar mensagem para o Tutor">
         <label htmlFor="chat-input" className="sr-only">Sua pergunta para o Tutor ENEM</label>
         <input
           id="chat-input"
@@ -277,14 +269,14 @@ export default function TutorIA() {
           onChange={(event) => setInput(event.target.value)}
           placeholder="Pergunte sobre qualquer conteúdo do ENEM…"
           disabled={loading || restoring || clearLoading}
-          className="app-surface min-w-0 flex-1 rounded-xl px-4 py-3 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-70"
+          className="app-surface-muted min-w-0 flex-1 rounded-xl px-4 py-3 text-sm placeholder:text-[var(--app-text-subtle)] focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-70"
         />
         {loading ? (
           <button
             type="button"
             onClick={cancelRequest}
             aria-label="Parar resposta do Tutor"
-            className="flex h-12 flex-shrink-0 items-center justify-center gap-1.5 rounded-xl bg-slate-700 px-4 text-sm font-medium text-white transition-colors hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+            className="btn-secondary h-12 flex-shrink-0 gap-2 px-4 text-sm"
           >
             <X size={17} aria-hidden="true" />
             Parar
@@ -294,17 +286,44 @@ export default function TutorIA() {
             type="submit"
             disabled={!input.trim() || restoring || clearLoading}
             aria-label="Enviar pergunta"
-            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-indigo-300"
+            className="btn-primary h-12 w-12 flex-shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Send size={18} aria-hidden="true" />
           </button>
         )}
       </form>
+      </div>
+
+      <aside className="flex flex-col gap-4 lg:overflow-y-auto" aria-label="Orientações de estudo">
+        <div className="app-surface app-card p-5">
+          <p className="eyebrow mb-3">Explore uma ideia</p>
+          <h2 className="section-heading mb-2 text-lg font-bold">Entenda o caminho</h2>
+          <p className="app-text-muted text-sm leading-relaxed">Peça exemplos, compare conceitos ou traga a etapa de um exercício que ficou confusa.</p>
+        </div>
+        {messages.length === 1 && (
+          <div className="space-y-2" role="group" aria-label="Perguntas sugeridas">
+            <p className="app-text-subtle px-1 text-xs font-semibold">Para começar</p>
+            {SUGGESTIONS.map((suggestion) => (
+              <button
+                type="button"
+                key={suggestion}
+                onClick={() => sendMessage(suggestion)}
+                className="app-surface flex w-full items-start gap-3 rounded-2xl p-4 text-left text-sm leading-relaxed transition-colors hover:border-violet-400 focus-visible:ring-2 focus-visible:ring-violet-500"
+              >
+                <span className="flex-1">{suggestion}</span>
+                <ArrowUpRight size={16} className="app-text-accent mt-1 shrink-0" aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        )}
+        <p className="app-text-subtle px-1 text-xs leading-relaxed">A IA pode cometer erros. Confira informações importantes no seu material de estudo.</p>
+      </aside>
+      </div>
 
       {clearDialogOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/50 p-4" role="presentation">
           <div
-            className="app-surface w-full max-w-md rounded-2xl p-6 shadow-2xl"
+            className="app-surface w-full max-w-md rounded-3xl p-6 shadow-2xl sm:p-8"
             role="dialog"
             aria-modal="true"
             aria-labelledby="clear-history-title"
@@ -328,7 +347,7 @@ export default function TutorIA() {
                 ref={dialogCancelRef}
                 onClick={() => setClearDialogOpen(false)}
                 disabled={clearLoading}
-                className="app-surface rounded-xl px-4 py-2 text-sm font-medium app-text-muted focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-60"
+                className="btn-secondary min-h-11 px-4 text-sm disabled:opacity-60"
               >
                 Cancelar
               </button>
