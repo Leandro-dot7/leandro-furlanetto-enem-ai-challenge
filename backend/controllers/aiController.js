@@ -12,6 +12,14 @@ function isTutorStorageError(error) {
   return /tutor_(conversas|mensagens)|PGRST205|42P01/i.test(error?.message || '');
 }
 
+function isAiTimeoutError(error) {
+  return error?.name === 'TimeoutError' || /timeout|timed out/i.test(error?.message || '');
+}
+
+function isInvalidAiJsonError(error) {
+  return error?.code === 'INVALID_AI_JSON';
+}
+
 /** GET /api/ai/tutor/latest — recupera a última conversa persistida do usuário. */
 export async function getLatestTutor(req, res) {
   try {
@@ -87,6 +95,9 @@ export async function tutorChat(req, res) {
       // fallback model or mutate the conversation after cancellation.
       return;
     }
+    if (isAiTimeoutError(err)) {
+      return res.status(504).json({ error: 'A resposta demorou mais que o limite. Tente novamente em alguns segundos.' });
+    }
     console.error('[tutorChat] Erro ao chamar Gemini:', err.message);
     return res.status(isTutorStorageError(err) ? 503 : 500).json({
       error: isTutorStorageError(err)
@@ -117,8 +128,10 @@ export async function gerarSimulado(req, res) {
     return res.status(200).json(simulado);
   } catch (err) {
     console.error('[gerarSimulado] Erro:', err.message);
-    return res.status(err.message.includes('JSON inválido') ? 502 : 500).json({
-      error: err.message.includes('JSON inválido') ? err.message : 'Erro ao gerar simulado. Tente novamente.',
+    return res.status(isAiTimeoutError(err) ? 504 : isInvalidAiJsonError(err) ? 502 : 500).json({
+      error: isAiTimeoutError(err)
+        ? 'A geração demorou mais que o limite. Tente gerar menos questões ou novamente em alguns segundos.'
+        : isInvalidAiJsonError(err) ? err.message : 'Erro ao gerar simulado. Tente novamente.',
     });
   }
 }
@@ -130,7 +143,11 @@ export async function gerarTemaRedacao(_req, res) {
     return res.status(200).json(temaData);
   } catch (err) {
     console.error('[gerarTemaRedacao] Erro:', err.message);
-    return res.status(500).json({ error: 'Erro ao gerar tema de redação. Tente novamente.' });
+    return res.status(isAiTimeoutError(err) ? 504 : 500).json({
+      error: isAiTimeoutError(err)
+        ? 'A geração demorou mais que o limite. Tente novamente em alguns segundos.'
+        : 'Erro ao gerar tema de redação. Tente novamente.',
+    });
   }
 }
 
@@ -150,8 +167,10 @@ export async function corrigirRedacao(req, res) {
     return res.status(200).json(correcao);
   } catch (err) {
     console.error('[corrigirRedacao] Erro:', err.message);
-    return res.status(err.message.includes('JSON inválido') ? 502 : 500).json({
-      error: err.message.includes('JSON inválido') ? err.message : 'Erro ao corrigir redação. Tente novamente.',
+    return res.status(isAiTimeoutError(err) ? 504 : isInvalidAiJsonError(err) ? 502 : 500).json({
+      error: isAiTimeoutError(err)
+        ? 'A correção demorou mais que o limite. Tente novamente em alguns segundos.'
+        : isInvalidAiJsonError(err) ? err.message : 'Erro ao corrigir redação. Tente novamente.',
     });
   }
 }

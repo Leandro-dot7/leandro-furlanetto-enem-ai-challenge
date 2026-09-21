@@ -9,6 +9,11 @@ import { supabase } from './lib/supabase';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
 import AuthLayout from './components/AuthLayout.jsx';
 import FeedbackMessage from './components/ui/FeedbackMessage.jsx';
+import {
+  clearLoginAttempts,
+  getLoginRateLimit,
+  recordLoginAttempt,
+} from './lib/loginRateLimit.js';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -21,6 +26,20 @@ export default function Login() {
   async function handleSubmit(event) {
     event.preventDefault();
     setError('');
+
+    let storage;
+    try {
+      storage = typeof window === 'undefined' ? undefined : window.localStorage;
+    } catch {
+      storage = undefined;
+    }
+    const loginLimit = getLoginRateLimit(storage);
+    if (!loginLimit.allowed) {
+      const minutes = Math.ceil(loginLimit.retryAfterSeconds / 60);
+      setError(`Muitas tentativas de login. Aguarde cerca de ${minutes} minuto(s) e tente novamente.`);
+      return;
+    }
+
     setLoading(true);
 
     const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
@@ -28,10 +47,17 @@ export default function Login() {
     setLoading(false);
 
     if (loginError) {
+      recordLoginAttempt(storage);
+      const currentLimit = getLoginRateLimit(storage);
+      if (!currentLimit.allowed) {
+        setError('Muitas tentativas de login. Aguarde alguns minutos e tente novamente.');
+        return;
+      }
       setError('E-mail ou senha inválidos. Verifique e tente novamente.');
       return;
     }
 
+    clearLoginAttempts(storage);
     navigate('/dashboard');
   }
 

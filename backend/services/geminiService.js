@@ -11,9 +11,36 @@ function getAi() {
 
 // Lista de modelos suportados com fallback automático
 const CANDIDATE_MODELS = [
-  'gemini-3.6-flash',
   'gemini-3.5-flash-lite',
+  'gemini-3.6-flash',
 ];
+
+export const AI_GENERATION_TIMEOUT_MS = 45_000;
+
+export function getLowLatencyGenerationConfig() {
+  return { thinkingConfig: { thinkingLevel: 'low' } };
+}
+
+export function createAiRequestSignal(parentSignal) {
+  const timeoutSignal = AbortSignal.timeout(AI_GENERATION_TIMEOUT_MS);
+  return parentSignal ? AbortSignal.any([parentSignal, timeoutSignal]) : timeoutSignal;
+}
+
+export function parseStructuredJson(rawText, operation) {
+  const cleaned = String(rawText || '')
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const error = new Error(`JSON inválido retornado pelo modelo durante ${operation}.`);
+    error.code = 'INVALID_AI_JSON';
+    throw error;
+  }
+}
 
 function createAbortError() {
   const error = new Error('A geração da resposta foi cancelada.');
@@ -50,13 +77,14 @@ export async function chatWithTutor(messages, { signal, retrievalContext } = {})
   }
 
   const ai = getAi();
+  const requestSignal = createAiRequestSignal(signal);
   const history = messages.slice(0, -1);
   const lastMessage = messages[messages.length - 1];
 
   let lastError = null;
 
   for (const model of CANDIDATE_MODELS) {
-    if (signal?.aborted) {
+    if (requestSignal.aborted) {
       throw createAbortError();
     }
 
@@ -85,7 +113,8 @@ export async function chatWithTutor(messages, { signal, retrievalContext } = {})
         // replaces the chat-level config when abortSignal is supplied.
         config: {
           systemInstruction: TUTOR_SYSTEM_PROMPT,
-          ...(signal ? { abortSignal: signal } : {}),
+          ...getLowLatencyGenerationConfig(),
+          abortSignal: requestSignal,
         },
       });
 
@@ -94,7 +123,7 @@ export async function chatWithTutor(messages, { signal, retrievalContext } = {})
       // Do not fall back to another model after the caller has cancelled.
       // A fallback here would keep the backend busy after the UI stopped
       // waiting and could append a late answer to the conversation.
-      if (signal?.aborted || err?.name === 'AbortError' || err?.code === 'ABORT_ERR') {
+      if (requestSignal.aborted || err?.name === 'AbortError' || err?.code === 'ABORT_ERR') {
         throw err;
       }
       console.warn(`[chatWithTutor] Falha com modelo ${model}:`, err.message);
@@ -110,6 +139,7 @@ export async function chatWithTutor(messages, { signal, retrievalContext } = {})
  */
 export async function gerarSimulado(materia, numQuestoes, { retrievalContext } = {}) {
   const ai = getAi();
+  const requestSignal = createAiRequestSignal();
   const safeRetrievalContext = retrievalContext
     ? retrievalContext
       .slice(0, 2_400)
@@ -125,7 +155,7 @@ REGRAS:
 - Cada questão deve ter enunciado contextualizado (texto de apoio quando adequado).
 - 5 alternativas (A, B, C, D, E), apenas uma correta.
 - Gabarito deve ser a letra da alternativa correta.
-- Explicação pedagógica detalhada sobre por que a resposta está correta e quais são os principais distratores.
+- Explicação pedagógica objetiva, com no máximo 3 frases, sobre por que a resposta está correta e qual é o principal distrator.
 - As questões devem cobrir diferentes habilidades da Matriz de Referência do ENEM para "${materia}".
 ${referenceBlock}
 
@@ -158,12 +188,20 @@ Retorne APENAS o JSON válido, sem markdown, sem texto extra, seguindo EXATAMENT
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         config: {
           responseMimeType: 'application/json',
+          ...getLowLatencyGenerationConfig(),
+          abortSignal: requestSignal,
         },
       });
 
-      const rawText = response.text;
-      return JSON.parse(rawText);
+      const parsed = parseStructuredJson(response.text, 'geração do simulado');
+      if (!Array.isArray(parsed?.questoes) || parsed.questoes.length !== numQuestoes) {
+        const error = new Error('JSON inválido retornado pelo modelo durante geração do simulado.');
+        error.code = 'INVALID_AI_JSON';
+        throw error;
+      }
+      return parsed;
     } catch (err) {
+      if (requestSignal.aborted) throw err;
       console.warn(`[gerarSimulado] Falha com modelo ${model}:`, err.message);
       lastError = err;
     }
@@ -177,6 +215,7 @@ Retorne APENAS o JSON válido, sem markdown, sem texto extra, seguindo EXATAMENT
  */
 export async function gerarTemaRedacao() {
   const ai = getAi();
+  const requestSignal = createAiRequestSignal();
   const prompt = `Você é um elaborador de propostas de redação para o ENEM.
 Crie uma proposta de tema inédita e relevante para o cenário brasileiro atual, seguindo a estrutura padrão do INEP/ENEM.
 
@@ -198,12 +237,14 @@ Retorne APENAS o JSON no seguinte schema:
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         config: {
           responseMimeType: 'application/json',
+          ...getLowLatencyGenerationConfig(),
+          abortSignal: requestSignal,
         },
       });
 
-      const rawText = response.text;
-      return JSON.parse(rawText);
+      return parseStructuredJson(response.text, 'geração do tema');
     } catch (err) {
+      if (requestSignal.aborted) throw err;
       console.warn(`[gerarTemaRedacao] Falha com modelo ${model}:`, err.message);
       lastError = err;
     }
@@ -217,6 +258,7 @@ Retorne APENAS o JSON no seguinte schema:
  */
 export async function corrigirRedacao(tema, texto) {
   const ai = getAi();
+  const requestSignal = createAiRequestSignal();
   const prompt = `Você é um avaliador oficial extremamente rigoroso de redações do ENEM (INEP).
 Sua missão é avaliar a redação do aluno de forma JUSTA, TÉCNICA e RÍGIDA, sem benevolência artificial.
 Notas permitidas por competência: APENAS múltiplos de 40 (0, 40, 80, 120, 160, 200).
@@ -289,12 +331,14 @@ Retorne APENAS um JSON válido no seguinte formato:
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         config: {
           responseMimeType: 'application/json',
+          ...getLowLatencyGenerationConfig(),
+          abortSignal: requestSignal,
         },
       });
 
-      const rawText = response.text;
-      return JSON.parse(rawText);
+      return parseStructuredJson(response.text, 'correção da redação');
     } catch (err) {
+      if (requestSignal.aborted) throw err;
       console.warn(`[corrigirRedacao] Falha com modelo ${model}:`, err.message);
       lastError = err;
     }
