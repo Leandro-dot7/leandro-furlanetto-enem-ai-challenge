@@ -134,7 +134,7 @@ function LoadingScreen({ materia }) {
         <h2 className="mb-3 text-2xl font-extrabold tracking-tight">Gerando seu simulado…</h2>
         <p className="app-text-muted text-sm leading-7">
           A IA está criando questões de <strong>{materia}</strong> no estilo ENEM.
-          <br />Isso pode levar alguns segundos.
+          <br />A geração pode levar até cerca de um minuto.
         </p>
       </div>
     </div>

@@ -14,7 +14,22 @@ const STOP_WORDS = new Set([
   'essa', 'esse', 'esta', 'este', 'eu', 'foi', 'isso', 'na', 'nas', 'no', 'nos',
   'o', 'os', 'para', 'por', 'que', 'qual', 'se', 'sem', 'sobre', 'uma', 'um', 'uma',
   'voce', 'você', 'me', 'minha', 'meu', 'pode', 'explique', 'ajude', 'quero',
+  'diferenca', 'resolver', 'questao', 'questoes', 'enem',
 ]);
+
+const AREA_DISCIPLINES = new Map([
+  ['linguagens', 'linguagens'],
+  ['linguagens e codigos', 'linguagens'],
+  ['ciencias humanas', 'ciencias-humanas'],
+  ['ciencias da natureza', 'ciencias-natureza'],
+  ['matematica', 'matematica'],
+]);
+
+const TUTOR_AREA_HINTS = [
+  ['matematica', new Set(['equacao', 'equacoes', 'quadratica', 'quadratico', 'algebra', 'porcentagem', 'trigonometria'])],
+  ['ciencias-natureza', new Set(['mitose', 'meiose', 'fotossintese', 'celula', 'celulas', 'atomo'])],
+  ['linguagens', new Set(['modernismo', 'redacao', 'literatura', 'gramatica'])],
+];
 
 let corpusPromise;
 
@@ -114,12 +129,23 @@ async function getCorpus() {
   return corpusPromise;
 }
 
-function scoreQuestion(question, queryTokens) {
+function scoreQuestion(question, queryTokens, minMatches) {
   let score = 0;
+  let matches = 0;
   for (const token of queryTokens) {
-    if (question.searchTokens.has(token)) score += token.length >= 6 ? 2 : 1;
+    if (question.searchTokens.has(token)) {
+      matches += 1;
+      score += token.length >= 6 ? 2 : 1;
+    }
   }
-  return score;
+  return matches >= minMatches ? score : 0;
+}
+
+function inferTutorDiscipline(queryTokens) {
+  const candidates = TUTOR_AREA_HINTS
+    .filter(([, hints]) => queryTokens.some((token) => hints.has(token)))
+    .map(([discipline]) => discipline);
+  return candidates.length === 1 ? candidates[0] : undefined;
 }
 
 function formatReference(question, { compact = false } = {}) {
@@ -136,7 +162,7 @@ function formatReference(question, { compact = false } = {}) {
   ].filter(Boolean).join('\n');
 }
 
-async function findReferences(query, { limit = DEFAULT_RESULT_LIMIT, compact = false } = {}) {
+async function findReferences(query, { limit = DEFAULT_RESULT_LIMIT, compact = false, discipline, minMatches = 2 } = {}) {
   if (typeof query !== 'string' || !query.trim()) return [];
   const safeQuery = query.trim().slice(0, MAX_QUERY_LENGTH);
   const queryTokens = tokenize(safeQuery);
@@ -144,7 +170,8 @@ async function findReferences(query, { limit = DEFAULT_RESULT_LIMIT, compact = f
 
   const corpus = await getCorpus();
   return corpus
-    .map((question) => ({ question, score: scoreQuestion(question, queryTokens) }))
+    .filter((question) => !discipline || question.discipline === discipline)
+    .map((question) => ({ question, score: scoreQuestion(question, queryTokens, minMatches) }))
     .filter(({ score }) => score >= 2)
     .sort((left, right) => right.score - left.score || (left.question.year || 0) - (right.question.year || 0) || (left.question.index || 0) - (right.question.index || 0))
     .slice(0, Math.max(1, Math.min(Number(limit) || DEFAULT_RESULT_LIMIT, 3)))
@@ -154,7 +181,8 @@ async function findReferences(query, { limit = DEFAULT_RESULT_LIMIT, compact = f
 /** Retorna referências curtas do corpus local, sem chamar a API durante a pergunta. */
 export async function getTutorRagContext(query, { limit = DEFAULT_RESULT_LIMIT } = {}) {
   try {
-    const references = await findReferences(query, { limit });
+    const discipline = inferTutorDiscipline(tokenize(query));
+    const references = await findReferences(query, { limit, discipline });
     return references.length > 0 ? references.join('\n\n---\n\n') : null;
   } catch (error) {
     console.warn('[enemRag] Falha ao ler corpus local; seguindo sem RAG:', error.message);
@@ -165,7 +193,10 @@ export async function getTutorRagContext(query, { limit = DEFAULT_RESULT_LIMIT }
 /** Recupera exemplos curtos por área antes da geração de um simulado. */
 export async function getSimuladoRagContext(materia, { limit = SIMULADO_RESULT_LIMIT } = {}) {
   try {
-    const references = await findReferences(`${materia} questão ENEM`, { limit, compact: true });
+    const normalizedArea = String(materia || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    const discipline = AREA_DISCIPLINES.get(normalizedArea);
+    if (!discipline) return null;
+    const references = await findReferences(materia, { limit, compact: true, discipline, minMatches: 1 });
     return references.length > 0 ? references.join('\n\n---\n\n') : null;
   } catch (error) {
     console.warn('[enemRag] Falha ao recuperar referências do simulado; seguindo sem RAG:', error.message);

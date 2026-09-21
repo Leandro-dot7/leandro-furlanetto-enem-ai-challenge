@@ -137,7 +137,7 @@ As principais telas da experiência são:
   Histórico é persistido por estudante
   ```
 
-  O Tutor não depende apenas da memória do navegador: a conversa é persistida no Supabase e restaurada quando o estudante retorna à tela.
+  O Tutor não depende apenas da memória do navegador: a conversa é persistida no Supabase e restaurada quando o estudante retorna à tela. Durante a recuperação, o estudante pode digitar a pergunta, mas o envio aguarda a conclusão para preservar a ordem da conversa. Se a recuperação falhar, a interface avisa e orienta a verificar a conexão antes de continuar.
 
 </details>
 
@@ -184,7 +184,7 @@ Pergunta ou área
       ↓
 Tokenização e busca lexical no corpus local
       ↓
-Referências curtas e limitadas
+Filtro da área nos simulados e referências curtas e limitadas
       ↓
 Prompt do Gemini com contexto de apoio
       ↓
@@ -206,7 +206,9 @@ O corpus atual cobre 2015 a 2023 e possui 1.553 questões:
 | 2023 | 180 |
 | **Total** | **1.553** |
 
-A API externa é usada no job de ingestão. Durante a pergunta do estudante, a aplicação consulta os JSON versionados localmente. O RAG melhora o alinhamento com o estilo do ENEM, mas não transforma a IA em uma fonte infalível; as respostas ainda devem ser tratadas como apoio educacional.
+A API externa é usada no job de ingestão. Durante a pergunta do estudante, a aplicação consulta os JSON versionados localmente. O Simulado só recebe exemplos da área escolhida, inclusive em “Linguagens e Códigos”; o Tutor ignora termos genéricos como “diferença”, exige mais de um termo em comum e restringe a área quando a pergunta traz pistas claras. Se não houver referência relevante, a geração segue sem contexto do corpus. O RAG melhora o alinhamento com o estilo do ENEM, mas não transforma a IA em uma fonte infalível; as respostas ainda devem ser tratadas como apoio educacional.
+
+O Tutor tenta primeiro o Gemini 3.6 Flash, com Flash-Lite como alternativa. O Simulado prioriza o Gemini 3.5 Flash-Lite, com Flash como alternativa. Antes de entregar um simulado ao frontend, o backend verifica a quantidade de questões, cinco alternativas preenchidas, gabarito e explicação. Isso valida a estrutura, não a correção pedagógica das questões.
 
 ## 🛡️ Segurança e privacidade
 
@@ -421,7 +423,7 @@ Os relatórios preservam as evidências e ajudam a transformar observações em 
 - Migrar o rate limit de IA para uma camada distribuída.
 - Evoluir o RAG lexical para busca híbrida textual e vetorial.
 - Adicionar observabilidade de latência, custo e falhas do Gemini.
-- Validar automaticamente o schema das respostas de IA.
+- Ampliar a validação estrutural também para os retornos de tema e correção de redação.
 - Adicionar exclusão de questões já respondidas e dificuldade adaptativa.
 - Expandir a galeria visual com capturas dos fluxos de Simulado, Tutor e Redação.
 - Ampliar testes ponta a ponta com contas sintéticas autorizadas.

@@ -119,9 +119,24 @@ test('modo claro usa superficies sem branco puro', () => {
 
 test('estrutura de documentacao e relatorios declara timestamps', () => {
   const reportReadme = fs.readFileSync(new URL('../../relatorios/README.md', import.meta.url), 'utf8');
-  const docsReadme = readSource('../../docs/README.md');
+  const projectReadme = readSource('../../README.md');
 
   assert.match(reportReadme, /AAAA-MM-DD-HH-mm/);
-  assert.match(docsReadme, /spec\.md/);
-  assert.doesNotMatch(docsReadme, /superpowers/);
+  assert.match(projectReadme, /spec\.md/);
+  assert.doesNotMatch(projectReadme, /superpowers/);
+});
+
+test('Tutor deixa digitar enquanto recupera e comunica quando o envio é liberado', () => {
+  const tutor = readSource('../src/TutorAI.jsx');
+  assert.match(tutor, /Você pode escrever sua pergunta/);
+  assert.match(tutor, /Verifique sua conexão e recarregue a página/);
+  assert.match(tutor, /disabled=\{loading \|\| clearLoading\}/);
+  assert.match(tutor, /disabled=\{restoring \|\| loading \|\| clearLoading\}/);
+  assert.match(tutor, /role="status" aria-live="polite"/);
+});
+
+test('Simulado comunica uma espera realista durante a geração', () => {
+  const simulado = readSource('../src/Simulado.jsx');
+  assert.match(simulado, /pode levar até cerca de um minuto/);
+  assert.doesNotMatch(simulado, /Isso pode levar alguns segundos/);
 });

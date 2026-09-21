@@ -15,6 +15,10 @@ const CANDIDATE_MODELS = [
   'gemini-3.6-flash',
 ];
 
+export function getCandidateModels(operation) {
+  return operation === 'tutor' ? [...CANDIDATE_MODELS].reverse() : [...CANDIDATE_MODELS];
+}
+
 export const AI_GENERATION_TIMEOUT_MS = 45_000;
 
 export function getLowLatencyGenerationConfig() {
@@ -40,6 +44,27 @@ export function parseStructuredJson(rawText, operation) {
     error.code = 'INVALID_AI_JSON';
     throw error;
   }
+}
+
+export function validateSimuladoResponse(parsed, materia, numQuestoes) {
+  const letters = ['A', 'B', 'C', 'D', 'E'];
+  const valid = parsed && Array.isArray(parsed.questoes)
+    && parsed.questoes.length === numQuestoes
+    && parsed.questoes.every((question, index) => question
+      && question.id === index + 1
+      && typeof question.enunciado === 'string' && question.enunciado.trim()
+      && question.alternativas && typeof question.alternativas === 'object'
+      && !Array.isArray(question.alternativas)
+      && Object.keys(question.alternativas).length === letters.length
+      && letters.every((letter) => typeof question.alternativas[letter] === 'string' && question.alternativas[letter].trim())
+      && letters.includes(question.gabarito)
+      && typeof question.explicacao === 'string' && question.explicacao.trim());
+  if (!valid) {
+    const error = new Error('JSON inválido retornado pelo modelo durante geração do simulado.');
+    error.code = 'INVALID_AI_JSON';
+    throw error;
+  }
+  return { ...parsed, materia };
 }
 
 function createAbortError() {
@@ -83,7 +108,7 @@ export async function chatWithTutor(messages, { signal, retrievalContext } = {})
 
   let lastError = null;
 
-  for (const model of CANDIDATE_MODELS) {
+  for (const model of getCandidateModels('tutor')) {
     if (requestSignal.aborted) {
       throw createAbortError();
     }
@@ -181,7 +206,7 @@ Retorne APENAS o JSON válido, sem markdown, sem texto extra, seguindo EXATAMENT
 
   let lastError = null;
 
-  for (const model of CANDIDATE_MODELS) {
+  for (const model of getCandidateModels('simulado')) {
     try {
       const response = await ai.models.generateContent({
         model,
@@ -194,12 +219,7 @@ Retorne APENAS o JSON válido, sem markdown, sem texto extra, seguindo EXATAMENT
       });
 
       const parsed = parseStructuredJson(response.text, 'geração do simulado');
-      if (!Array.isArray(parsed?.questoes) || parsed.questoes.length !== numQuestoes) {
-        const error = new Error('JSON inválido retornado pelo modelo durante geração do simulado.');
-        error.code = 'INVALID_AI_JSON';
-        throw error;
-      }
-      return parsed;
+      return validateSimuladoResponse(parsed, materia, numQuestoes);
     } catch (err) {
       if (requestSignal.aborted) throw err;
       console.warn(`[gerarSimulado] Falha com modelo ${model}:`, err.message);

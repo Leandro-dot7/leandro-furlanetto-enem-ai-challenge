@@ -1,6 +1,6 @@
 /**
  * Chat persistente com o Tutor ENEM.
- * A resposta do modelo Ã© renderizada por TutorMarkdown, sem HTML bruto.
+ * A resposta do modelo é renderizada por TutorMarkdown, sem HTML bruto.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { AlertCircle, ArrowUpRight, BrainCircuit, Loader2, RotateCcw, Send, Trash2, User, X } from 'lucide-react';
@@ -70,7 +70,8 @@ export default function TutorIA() {
   const [conversationId, setConversationId] = useState(null);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [restoring, setRestoring] = useState(true);
+  const [restoredUserId, setRestoredUserId] = useState(null);
+  const restoring = Boolean(user?.id && restoredUserId !== user.id);
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [clearLoading, setClearLoading] = useState(false);
   const [clearError, setClearError] = useState('');
@@ -83,7 +84,10 @@ export default function TutorIA() {
 
   useEffect(() => {
     let active = true;
-    if (!user?.id) return () => { active = false; };
+    if (!user?.id) {
+      restoringRef.current = false;
+      return () => { active = false; };
+    }
 
     restoringRef.current = true;
     api.get('/ai/tutor/latest')
@@ -97,10 +101,16 @@ export default function TutorIA() {
       })
       .catch((error) => {
         console.warn('[TutorAI] Não foi possível recuperar o histórico:', error.message);
+        if (active) setFeedback({
+          tone: 'warning',
+          children: 'Não foi possível recuperar sua conversa anterior. Verifique sua conexão e recarregue a página antes de continuar.',
+        });
       })
       .finally(() => {
-        restoringRef.current = false;
-        if (active) setRestoring(false);
+        if (active) {
+          restoringRef.current = false;
+          setRestoredUserId(user.id);
+        }
       });
 
     return () => { active = false; };
@@ -213,7 +223,7 @@ export default function TutorIA() {
           <button
             type="button"
             onClick={handleReset}
-            disabled={loading || clearLoading}
+            disabled={loading || clearLoading || restoring}
             className="btn-secondary min-h-11 gap-2 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Iniciar nova conversa"
           >
@@ -241,7 +251,7 @@ export default function TutorIA() {
         <span className="feature-icon" aria-hidden="true"><BrainCircuit size={22} /></span>
         <div>
           <h2 className="text-sm font-bold">Seu espaço de estudo</h2>
-          <p className="app-text-subtle text-xs">{restoring ? 'Recuperando sua conversa…' : 'Conteúdos e estratégias para o ENEM'}</p>
+          <p className="app-text-subtle text-xs">Conteúdos e estratégias para o ENEM</p>
         </div>
       </div>
       <div
@@ -257,6 +267,12 @@ export default function TutorIA() {
         </div>
       </div>
 
+      {restoring && (
+        <div className="mx-3 mt-3 flex items-start gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-4 py-3 text-sm sm:mx-4" role="status" aria-live="polite">
+          <Loader2 size={17} className="mt-0.5 shrink-0 animate-spin" aria-hidden="true" />
+          <span>Recuperando sua conversa anterior. Você pode escrever sua pergunta; o envio será liberado em seguida.</span>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="flex gap-2 p-3 sm:p-4" aria-label="Enviar mensagem para o Tutor">
         <label htmlFor="chat-input" className="sr-only">Sua pergunta para o Tutor ENEM</label>
         <input
@@ -268,7 +284,7 @@ export default function TutorIA() {
           value={input}
           onChange={(event) => setInput(event.target.value)}
           placeholder="Pergunte sobre qualquer conteúdo do ENEM…"
-          disabled={loading || restoring || clearLoading}
+          disabled={loading || clearLoading}
           className="app-surface-muted min-w-0 flex-1 rounded-xl px-4 py-3 text-sm placeholder:text-[var(--app-text-subtle)] focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-70"
         />
         {loading ? (
@@ -308,7 +324,8 @@ export default function TutorIA() {
                 type="button"
                 key={suggestion}
                 onClick={() => sendMessage(suggestion)}
-                className="app-surface flex w-full items-start gap-3 rounded-2xl p-4 text-left text-sm leading-relaxed transition-colors hover:border-violet-400 focus-visible:ring-2 focus-visible:ring-violet-500"
+                disabled={restoring || loading || clearLoading}
+                className="app-surface flex w-full items-start gap-3 rounded-2xl p-4 text-left text-sm leading-relaxed transition-colors hover:border-violet-400 focus-visible:ring-2 focus-visible:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span className="flex-1">{suggestion}</span>
                 <ArrowUpRight size={16} className="app-text-accent mt-1 shrink-0" aria-hidden="true" />
